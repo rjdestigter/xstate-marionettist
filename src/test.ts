@@ -14,37 +14,39 @@ import decode, {
   Configuration as TConfiguration,
 } from "./decoder";
 
-const parseActions = (buffer: Deferred[], debug: (log: any) => void) => (
-  actions: TAction[]
-) => async (page: Page) => {
+const parseActions = (wrap: (str: string) => string) => (
+  buffer: Deferred[],
+  debug: (log: any) => void
+) => (actions: TAction[]) => async (page: Page) => {
   for (let i = 0; i < actions.length; i++) {
     const action = actions[i];
+
+    if (typeof action === "function") {
+      debug("pagefunction");
+      await action(page);
+      return;
+    }
 
     debug(action.join(" -> "));
 
     switch (action[0]) {
-      case "page": {
-        await action[1](page)
-        break;
-      }
-
       case "delay": {
         await delay(action[1]);
         break;
       }
 
       case "click": {
-        await page.click(`[data-testid="${action[1]}"]`);
+        await page.click(wrap(action[1]));
         break;
       }
 
       case "type": {
-        await page.type(`[data-testid="${action[1]}"]`, `${action[2]}`);
+        await page.type(wrap(action[1]), `${action[2]}`);
         break;
       }
 
       case "select": {
-        await page.select(`[data-testid="${action[1]}"]`, action[2]);
+        await page.select(wrap(action[1]), action[2]);
         break;
       }
 
@@ -58,11 +60,6 @@ const parseActions = (buffer: Deferred[], debug: (log: any) => void) => (
       }
 
       case "resolve": {
-        // while (buffer.length > 0) {
-        //   const deferred = buffer.shift();
-        //   deferred?.resolve();
-        // }
-
         let index = -1;
         do {
           index = buffer.findIndex((deferred) => deferred.id === action[1]);
@@ -79,22 +76,23 @@ const parseActions = (buffer: Deferred[], debug: (log: any) => void) => (
       }
 
       case "waitForSelector": {
-        await page.waitForSelector(`[data-testid~="${action[1]}"`);
+        await page.waitForSelector(wrap(action[1]));
         break;
       }
 
       case "waitForFocus": {
-        await page.waitForFunction(
-          `document.activeElement && document.activeElement.getAttribute("data-testid") === "${action[1]}"`
-        );
+        const fn = `!!document.activeElement && document.activeElement === document.querySelector("${wrap(
+          action[1]
+        ).replace(/"/g, '\\"')}")`;
+        debug(`waitForFocus -> ${fn}`);
+        await page.waitForFunction(fn);
 
         break;
       }
 
       case "expectProperty": {
-        const element = await page.waitForSelector(
-          `[data-testid~="${action[1]}"]`
-        );
+        const element = await page.waitForSelector(wrap(action[1]));
+
         const value = await page.evaluate(
           (el, selector) => el[selector],
           element,
@@ -105,12 +103,6 @@ const parseActions = (buffer: Deferred[], debug: (log: any) => void) => (
 
         break;
       }
-
-      case "expectNotSelector": {
-        await page.waitForFunction(
-          `!document.querySelector("[data-testid='${action[1]}']")`
-        );
-      }
     }
   }
 };
@@ -118,6 +110,10 @@ const parseActions = (buffer: Deferred[], debug: (log: any) => void) => (
 const parseActionsToAssign = (actions: TAction[]) =>
   actions
     .map((action) => {
+      if (typeof action === "function") {
+        return undefined;
+      }
+
       switch (action[0]) {
         case "select":
         case "type": {
@@ -127,175 +123,227 @@ const parseActionsToAssign = (actions: TAction[]) =>
           return undefined;
       }
     })
-    .filter(_ => !!_);
+    .filter((_) => !!_);
 
-export default function test(json: any) {
-  const configuration = decode(json);
+const defaultSelectorWrapper = (selector: string) =>
+  `[data-testid~="${selector}"]`;
 
-  if (E.isRight(configuration)) {
-    const config = configuration.right;
+const defaultPorts = {
+  ci: 7777,
+  prod: 7777,
+  dev: 3000,
+};
 
-    describe(`Auto-generated: ${config.id}`, () => {
-      const debugPlan: (log: any) => void = debug(`e2e:pln:${config.id}`);
-      const debugPath: (log: any) => void = debug(`e2e:pth:${config.id}`);
-      const debugTest: (log: any) => void = debug(`e2e:tst:${config.id}`);
-      const debugEvent: (log: any) => void = debug(`e2e:evt:${config.id}`);
+export type Options = {
+  selectorWrapper?: (selector: string) => string;
+  server?: string;
+  xstateInspect?: boolean,
+  ports?: {
+    ci?: number;
+    prod?: number;
+    dev?: number;
+  };
+};
 
-      const machineTemplate: any = {
-        id: config.id,
-        initial: config.initial,
-        states: {},
-        context: {},
-      };
+export function make(
+  {
+    selectorWrapper = defaultSelectorWrapper,
+    ports: ports_ = defaultPorts,
+    server = "http://localhost",
+    xstateInspect = false,
+  }: Options = {
+    selectorWrapper: defaultSelectorWrapper,
+    ports: defaultPorts,
+    server: "http://localhost",
+    xstateInspect: false
+  }
+) {
+  const ports = { ...defaultPorts, ...ports_ };
+  const ci = process.env.CI === "true";
+  const prod = process.env.CI === "production";
+  const port =
+    ci && ports.ci ? ports.ci : ci || prod ? ports.ci || ports.prod : ports.dev;
 
-      const eventMap: Record<
-        string,
-        {
-          exec: (page: Page) => any;
-        }
-      > = {};
+  return (json: any) => {
+    const configuration = decode(json);
 
-      Object.keys(config.states).forEach((state) => {
-        const { type, tests, on: events = {}, xstate = {} } = config.states[
-          state
-        ];
+    if (E.isRight(configuration)) {
+      const config = configuration.right;
 
-        const meta = tests && {
-          test: async (page: Page) => {
-            debugTest(`state: ${state}`);
-            return parseActions(buffer, debugTest)(tests)(page);
-          },
+      describe(`Auto-generated: ${config.id}`, () => {
+        const debugPlan: (log: any) => void = debug(`e2e:pln (${config.id})`);
+        const debugPath: (log: any) => void = debug(`e2e:pth (${config.id})`);
+        const debugTest: (log: any) => void = debug(`e2e:tst (${config.id})`);
+        const debugEvent: (log: any) => void = debug(`e2e:evt (${config.id})`);
+
+        const machineTemplate: any = {
+          id: config.id,
+          initial: config.initial,
+          states: {},
+          context: {},
         };
 
-        const on = Object.keys(events || {}).reduce((acc, next) => {
-          const event = events[next];
+        const eventMap: Record<
+          string,
+          {
+            exec: (page: Page) => any;
+          }
+        > = {};
 
-          acc[next] = {
-            target: event.target,
-            actions: parseActionsToAssign(event.actions || []),
+        Object.keys(config.states).forEach((state) => {
+          const { type, tests, on: events = {}, xstate = {} } = config.states[
+            state
+          ];
+
+          const meta = tests && {
+            test: async (page: Page) => {
+              debugTest(`state: ${state}`);
+              return parseActions(selectorWrapper)(buffer, debugTest)(tests)(
+                page
+              );
+            },
           };
 
-          if (event.actions) {
-            const actions = event.actions;
+          const on = Object.keys(events || {}).reduce((acc, next) => {
+            const event = events[next];
 
-            eventMap[next] = {
-              exec: async (page) => {
-                debugEvent(`${next}`);
-                return parseActions(buffer, debugEvent)(actions)(page);
-              },
+            acc[next] = {
+              target: event.target,
+              actions: parseActionsToAssign(event.actions || []),
             };
-          } else {
-            eventMap[next] = {
-              exec: () => true,
-            };
-          }
 
-          return acc;
-        }, {} as any);
+            if (event.actions) {
+              const actions = event.actions;
 
-        const stateNode = Object.assign(
-          {
-            meta,
-            on,
-            type,
-          },
-          xstate
+              eventMap[next] = {
+                exec: async (page) => {
+                  debugEvent(`${next}`);
+                  return parseActions(selectorWrapper)(buffer, debugEvent)(
+                    actions
+                  )(page);
+                },
+              };
+            } else {
+              eventMap[next] = {
+                exec: () => true,
+              };
+            }
+
+            return acc;
+          }, {} as any);
+
+          const stateNode = Object.assign(
+            {
+              meta,
+              on,
+              type,
+            },
+            xstate
+          );
+
+          machineTemplate.states[state] = stateNode;
+        });
+
+        const machine = createMachine(machineTemplate);
+
+        const buffer: Deferred[] = [];
+        const failurePattern: string[][][] = [];
+
+        const onRequest = makeOnRequest(
+          config.id,
+          failurePattern,
+          buffer,
+          config.apis || []
         );
 
-        machineTemplate.states[state] = stateNode;
-      });
+        beforeAll(async () => {
+          await page.setRequestInterception(true);
+          page.on("request", onRequest);
+        });
 
-      const machine = createMachine(machineTemplate);
+        afterAll(async () => {
+          page.off("request", onRequest);
+          await page.setRequestInterception(false);
+        });
 
-      const buffer: Deferred[] = [];
-      const failurePattern: string[][][] = [];
+        const model = createModel<Page>(machine).withEvents(eventMap);
+        const testPlans = model.getShortestPathPlans();
+        testPlans.reverse();
 
-      const onRequest = makeOnRequest(
-        config.id,
-        failurePattern,
-        buffer,
-        config.apis || []
-      );
-
-      beforeAll(async () => {
-        await page.setRequestInterception(true);
-        page.on("request", onRequest);
-      });
-
-      afterAll(async () => {
-        page.off("request", onRequest);
-        await page.setRequestInterception(false);
-      });
-
-      const model = createModel<Page>(machine).withEvents(eventMap);
-      const testPlans = model.getShortestPathPlans();
-      testPlans.reverse();
-
-      testPlans.forEach((plan, planIndex) => {
-        //
-        failurePattern[planIndex] = [];
-
-        describe(`${planIndex}: ${plan.description}`, () => {
+        testPlans.forEach((plan, planIndex) => {
           //
-          plan.paths.forEach((path, pathIndex) => {
+          failurePattern[planIndex] = [];
+
+          describe(`${planIndex}: ${plan.description}`, () => {
             //
-            failurePattern[planIndex][pathIndex] =
-              // path.description.match(/OK|BAD/g) || [];
-              config.outcomes
-                ? path.description.match(
-                    new RegExp(config.outcomes.join("|"), "g")
-                  ) || []
-                : [];
+            plan.paths.forEach((path, pathIndex) => {
+              //
+              failurePattern[planIndex][pathIndex] =
+                // path.description.match(/OK|BAD/g) || [];
+                config.outcomes
+                  ? path.description.match(
+                      new RegExp(config.outcomes.join("|"), "g")
+                    ) || []
+                  : [];
 
-            const outcomes = failurePattern[planIndex][pathIndex];
+              const outcomes = failurePattern[planIndex][pathIndex];
 
-            it(`${pathIndex}: (${outcomes.join(", ")}) ${
-              path.description
-            }`, async () => {
-              debugPlan("-------------");
-              debugPlan(planIndex);
-              debugPlan(plan.description);
-              debugPath(pathIndex);
-              debugPath(path.description);
-              debugPath(outcomes.join(", "));
+              it(`${pathIndex}: (${outcomes.join(", ")}) ${
+                path.description
+              }`, async () => {
+                debugPlan("-------------");
+                debugPlan(planIndex);
+                debugPlan(plan.description);
+                debugPath(pathIndex);
+                debugPath(path.description);
+                debugPath(outcomes.join(", "));
 
-              if (config.viewport) await page.setViewport(config.viewport);
+                if (config.viewport) await page.setViewport(config.viewport);
 
-              await page.goto(
-                `http://localhost:${process.env.E3E ? 3000 : 7777}${
-                  config.visit.path
-                }?mockCaptcha=mock-captcha-value&inspect=false&pathIndex=${pathIndex}&planIndex=${planIndex}&outcomes=${outcomes.join(
+                const visitPath = /^\//.test(config.visit.path)
+                  ? config.visit.path
+                  : `/${config.visit.path}`;
+
+                const q = /\?/.test(visitPath) ? "&" : "?";
+
+                const url = `${server}:${port}${visitPath}${q}xstate-inspect=${xstateInspect}&pathIndex=${pathIndex}&planIndex=${planIndex}&outcomes=${outcomes.join(
                   ","
-                )}`
-              );
+                )}`;
 
-              await path.test(page);
+                debugPath(url);
 
-              while (buffer.length > 0) {
-                const deferred = buffer.shift();
-                deferred?.resolve();
-              }
-            }, 60000);
+                await page.goto(url);
+
+                await path.test(page);
+
+                while (buffer.length > 0) {
+                  const deferred = buffer.shift();
+                  deferred?.resolve();
+                }
+              }, 60000);
+            });
+          });
+        });
+
+        it("coverage", () => {
+          model.testCoverage({
+            filter: (node) => !!node.meta,
           });
         });
       });
+    } else {
+      console.log(JSON.stringify(configuration, null, 2));
 
-      it("coverage", () => {
-        model.testCoverage({
-          filter: (node) => !!node.meta,
+      describe(`Failed to generate automated end-2-end test for ${json.name}`, () => {
+        it("Failed to decode configuration", () => {
+          expect(false).toBe(configuration.left);
         });
       });
-    });
-  } else {
-    console.log(JSON.stringify(configuration, null, 2));
-
-    describe(`Failed to generate automated end-2-end test for ${json.name}`, () => {
-      it("Failed to decode configuration", () => {
-        expect(false).toBe(configuration.left);
-      });
-    });
-  }
+    }
+  };
 }
 
 export type Action = TAction;
 export type Configuration = TConfiguration;
+
+export default make();

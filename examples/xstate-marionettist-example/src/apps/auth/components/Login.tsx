@@ -16,6 +16,11 @@ type propsLogin = Credentials & {
 };
 
 const Login = (props: propsLogin) => {
+
+  React.useLayoutEffect(() => {
+    document.querySelector<HTMLInputElement>('input[name="email"]')?.focus()
+  }, [])
+  
   return (
     <form
       data-testid="frm-login"

@@ -1,15 +1,22 @@
-module.exports = {
-  server: {
-    command: `npm run build && npm run serve:e2e`,
-    port: 7777,
-    launchTimeout: 300000,
-    usedPortAction: "ignore",
-  },
-  launch: {
-    headless: !!process.env.CI,
-    slowMo: 10,
-    args: /true/i.test(process.env.LOCAL_CI)
-      ? []
-      : ["--no-sandbox", "--disable-setuid-sandbox", "--start-maximized"],
-  },
-};
+module.exports =
+  !process.env.CI && process.env.NODE_ENV !== "production"
+    ? {
+        launch: {
+          headless: false,
+          slowMo: 10,
+          args: ["--start-maximized"],
+        },
+      }
+    : {
+        server: {
+          command: `npm run build && npm run serve:e2e`,
+          port: 7777,
+          launchTimeout: 300000,
+          usedPortAction: "ignore",
+        },
+        launch: {
+          headless: !!process.env.CI,
+          slowMo: 0,
+          args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        },
+      };
