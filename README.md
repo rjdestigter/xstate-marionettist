@@ -2,7 +2,7 @@
 
 > Model based testing with [XState] + [Puppeteer] made easy
 
-The goal of this project is to define a simple configuration "langauge" allowing developers to create model based end-to-end tests for their applications using [Jest], [XState], and [Puppeteer].
+The goal of this project is to define a simple configuration "language" allowing developers to create model based end-to-end tests for their applications using [Jest], [XState], and [Puppeteer].
 
 It abtracts away defining the test machine, creating it's model, and the architecture needed to communicate between intercepted network requests and the model.
 
@@ -194,12 +194,12 @@ This state has a couple of tests. The first one examplifies usage of plain funct
     await page.click('[data-testid="btn-login"]'),
 ```
 
-The `"defer"` action is executed before clicking the button. Under the hood puppteee's API for interepting network requests is used to mock and block API responses. The order of execution here will be:
+The `"defer"` action is executed before clicking the button. Under the hood puppeteer's API for intercepting network requests is used to mock and block API responses. The order of execution here will be:
 
 1. `"defer"` puts a promise in a buffer
-2. Puppteer clicks the button in the UI
+2. Puppeteer clicks the button in the UI
 3. The UI makes a network request to login
-4. Puppteer intercepts the network request, checks the buffer for unresolved promises and blocks if any are in there.
+4. Puppeteer intercepts the network request, checks the buffer for unresolved promises and blocks if any are in there.
 5. The test model moves on to the _authenticating_ state's tests.
 
 The next state that will be tested is the _authenticating_ state:
@@ -221,11 +221,11 @@ authenticating: {
 },
 ```
 
-The first test translates to a puppteer intruction for retrieving an element's property and using _Jest_'s `expect` API to test the value. In this case the button should be disabled while the form is busy submitting.
+The first test translates to a puppeteer instruction for retrieving an element's property and using _Jest_'s `expect` API to test the value. In this case the button should be disabled while the form is busy submitting.
 
 The next action in the list of tests in not really a test but an instruction to resolve the promise that was put in the buffer using the `"defer"` action. This will cause the intercepted request to continue on. Our configuration has defined a matching path and for such cases the intercepted request is mocked. Requests that have no matching path are not mocked.
 
-Each event type that transitions the model to a state where a mocked/bloced network request is made should be added to the top-level `.outcomes` property. This important or otherwise mocked responses are not matched up. I'll write up an explanation of the underlying machinary in a different readme.
+Each event type that transitions the model to a state where a mocked/blocked network request is made should be added to the top-level `.outcomes` property. This important or otherwise mocked responses are not matched up. I'll write up an explanation of the underlying machinery in a different readme.
 
 In this case we have an _OK_ and a _BAD_ outcome. The API configuration also allows you to define a response status and payload for each outcome. The default response status is 200 and an empty body. You can also define a status and body for all outcome using an asterisk:
 
