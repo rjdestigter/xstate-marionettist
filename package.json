@@ -1,8 +1,7 @@
 {
   "name": "xstate-marionettist",
-  "version": "0.2.0",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "version": "0.3.0",
+  "main": "dist/index.js",
   "browser": "dist/index.umd.js",
   "author": "John de Stigter <johndestigter@gmail.com>",
   "license": "MIT",
@@ -22,6 +21,7 @@
   "peerDependencies": {
     "@xstate/test": "^0.4.1",
     "jest": "^26.5.2",
+    "jest-puppeteer": "^4.4.0",
     "puppeteer": "^5.3.1",
     "xstate": "^4.13.0"
   },
