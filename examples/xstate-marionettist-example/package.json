@@ -28,7 +28,8 @@
   "scripts": {
     "start": "npm run xstate-codegen -- --once && concurrently \"npm run xstate-codegen\" \"npm run dev\"",
     "dev": "SKIP_PREFLIGHT_CHECK=true react-scripts start",
-    "build": "npm run xstate-codegen -- --once && SKIP_PREFLIGHT_CHECK=true react-scripts build",
+    "build": "npm run xstate-codegen -- --once && npm run compile",
+    "compile": "SKIP_PREFLIGHT_CHECK=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "xstate-codegen": "xstate-codegen ./src/**/machine.ts",

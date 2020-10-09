@@ -55,7 +55,6 @@ const machine = createMachine<AuthState, AuthEvent, "auth">(
         debugger
         if (status >= 400) {
           throw data;
-          return;
         }
 
         return data
