@@ -1,5 +1,5 @@
 module.exports =
-  process.env.NODE_ENV !== "production"
+  !process.env.CI && process.env.NODE_ENV !== "production"
     ? {
         launch: {
           headless: false,
@@ -16,11 +16,7 @@ module.exports =
         },
         launch: {
           headless: !!process.env.CI,
-          slowMo: 10,
-          args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--start-maximized",
-          ],
+          slowMo: 0,
+          args: ["--no-sandbox", "--disable-setuid-sandbox"],
         },
       };
