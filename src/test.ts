@@ -24,7 +24,7 @@ const parseActions = (wrap: (str: string) => string) => (
     if (typeof action === "function") {
       debug("pagefunction");
       await action(page);
-      return;
+      continue;
     }
 
     debug(action.join(" -> "));
@@ -36,7 +36,8 @@ const parseActions = (wrap: (str: string) => string) => (
       }
 
       case "click": {
-        await page.click(wrap(action[1]));
+        const names = Array.isArray(action[1]) ? action[1] : [action[1]]
+        await Promise.all(names.map(_ => page.click(wrap(_))));
         break;
       }
 
@@ -51,10 +52,13 @@ const parseActions = (wrap: (str: string) => string) => (
       }
 
       case "defer": {
-        const deferred = defer(action[1], action[1]);
-        debug(`deferring -> ${deferred.id}`);
-        buffer.push(deferred);
-        debug(`buffer.length -> ${buffer.length}`);
+        const names = Array.isArray(action[1]) ? action[1] : [action[1]];
+        await Promise.all(names.map((_) => {
+          const deferred = defer(_, _);
+          debug(`deferring -> ${deferred.id}`);
+          buffer.push(deferred);
+          debug(`buffer.length -> ${buffer.length}`);
+        }));        
 
         break;
       }
@@ -76,7 +80,10 @@ const parseActions = (wrap: (str: string) => string) => (
       }
 
       case "waitForSelector": {
-        await page.waitForSelector(wrap(action[1]));
+        const names = Array.isArray(action[1]) ? action[1] : [action[1]];
+        await Promise.all(
+          names.map((_) => page.waitForSelector(wrap(_)))
+        );   
         break;
       }
 
@@ -160,7 +167,7 @@ export function make(
 ) {
   const ports = { ...defaultPorts, ...ports_ };
   const ci = process.env.CI === "true";
-  const prod = process.env.CI === "production";
+  const prod = process.env.NODE_ENV === "production";
   const port =
     ci && ports.ci ? ports.ci : ci || prod ? ports.ci || ports.prod : ports.dev;
 

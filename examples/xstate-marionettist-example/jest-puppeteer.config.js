@@ -3,7 +3,7 @@ module.exports =
     ? {
         launch: {
           headless: false,
-          slowMo: 10,
+          slowMo: 0,
           args: ["--start-maximized"],
         },
       }

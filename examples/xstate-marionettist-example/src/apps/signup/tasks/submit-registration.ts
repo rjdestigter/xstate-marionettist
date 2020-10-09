@@ -1,11 +1,6 @@
 import * as T from "fp-ts/lib/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-type Token = {
-  access_token: string,
-  refresh_token: string,
-}
-
 export const authenticate = (credentials: {
   email?: string;
   password?: string;
@@ -15,7 +10,7 @@ export const authenticate = (credentials: {
     // T.chain(() => () => Promise.reject("Not yet implemented"))
     T.chain(() => async () => {
       try {
-        return await fetch('http://www.example.com/token') // .catch(reason => Promise.reject(reason))
+        return await fetch('http://www.example.com/register') // .catch(reason => Promise.reject(reason))
       } catch (error) {
         return Promise.reject(`${error}`)
       }

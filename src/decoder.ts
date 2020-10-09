@@ -17,14 +17,17 @@ const actionDecoder = d.union(
   d.tuple(d.literal("delay"), d.number),
   pageFnDecoder,
   d.tuple(
+    d.union(d.literal("resolve"), d.literal("waitForFocus")),
+    d.string,
+  ),
+  d.tuple(
     d.union(
       d.literal("waitForSelector"),
-      d.literal("waitForFocus"),
+      d.literal("$"),
       d.literal("click"),
       d.literal("defer"),
-      d.literal("resolve"),
     ),
-    d.string
+    d.union(d.string, d.array(d.string))
   ),
   d.tuple(d.literal("type"), d.string, d.union(d.number, d.string)),
   d.tuple(d.literal("select"), d.string, d.string),

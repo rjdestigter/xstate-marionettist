@@ -1,8 +1,7 @@
-import { Page } from "puppeteer";
 import test, { Configuration } from "../../../../../dist";
 
 const configuration: Configuration = {
-  id: "xstateMarionetteExample",
+  id: "auth",
   viewport: { width: 1366, height: 768 },
   visit: {
     path: "/",
@@ -31,9 +30,9 @@ const configuration: Configuration = {
     noop: {
       tests: [
         page => page.waitForSelector("div#root"),
-        ["waitForSelector", "frm-login"],
+        ["click", "btn-auth"],
+        ["waitForSelector", ["frm-login", "txt-password"]],
         ["waitForFocus", "txt-email"],
-        ["waitForSelector", "txt-password"],
         ["expectProperty", "btn-login", "disabled", false],
       ],
       on: {
@@ -64,8 +63,6 @@ const configuration: Configuration = {
     },
     failure: {
       tests: [
-        ["expectProperty", "btn-login", "disabled", true],
-        ["resolve", "submitting"],
         ["waitForSelector", "txt-email-helptext-error"],
         ["expectProperty", "btn-login", "disabled", false],
       ],
