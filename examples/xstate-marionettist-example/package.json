@@ -34,7 +34,7 @@
     "eject": "react-scripts eject",
     "xstate-codegen": "xstate-codegen ./src/**/machine.ts",
     "serve:e2e": "serve -s -p 7777 build",
-    "e2e": "cross-env REACT_APP_ENV_TARGET=dev DEBUG=e2e* HEADLESS=FALSE jest --runInBand -c jest.config.js",
+    "e2e": "cross-env DEBUG=e2e* HEADLESS=FALSE jest --runInBand -c jest.config.js",
     "typedoc": "npx typedoc"
   },
   "eslintConfig": {

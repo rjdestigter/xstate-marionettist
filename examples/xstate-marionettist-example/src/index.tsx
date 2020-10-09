@@ -5,7 +5,13 @@ import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import { inspect } from "@xstate/inspect";
 
-process.env.NODE_ENV === "development" && inspect({iframe: false})
+if (process.env.NODE_ENV !== "production") {
+    const params = new URLSearchParams(window.location.search)
+
+    if (params.get("xstate-inspect") !== 'false') {
+        inspect({ iframe: false });
+    }
+}
 
 ReactDOM.render(<App />, document.getElementById("root"));
 

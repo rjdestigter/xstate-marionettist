@@ -1,10 +1,11 @@
+import { Page } from "puppeteer";
 import test, { Configuration } from "../../../../../dist";
 
 const configuration: Configuration = {
   id: "xstateMarionetteExample",
   viewport: { width: 1366, height: 768 },
   visit: {
-    path: "/saad-apply",
+    path: "/",
   },
   apis: [
     {
@@ -29,11 +30,11 @@ const configuration: Configuration = {
   states: {
     noop: {
       tests: [
+        page => page.waitForSelector("div#root"),
         ["waitForSelector", "frm-login"],
-        ["waitForSelector", "txt-email"],
+        ["waitForFocus", "txt-email"],
         ["waitForSelector", "txt-password"],
         ["expectProperty", "btn-login", "disabled", false],
-        ["page", (page) => page.waitForSelector("[data-testid='btn-login']")],
       ],
       on: {
         LOGIN: {
@@ -66,12 +67,8 @@ const configuration: Configuration = {
         ["expectProperty", "btn-login", "disabled", true],
         ["resolve", "submitting"],
         ["waitForSelector", "txt-email-helptext-error"],
+        ["expectProperty", "btn-login", "disabled", false],
       ],
-      on: {
-        NOOP: {
-          target: "noop",
-        },
-      },
     },
     authenticated: {
       tests: [
