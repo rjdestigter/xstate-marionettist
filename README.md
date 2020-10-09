@@ -47,6 +47,7 @@ npm install xstate-marionettist
 
 - `@xstate/test`
 - `jest`
+- `jest-puppeteer`
 - `puppeteer`
 - `xstate`
 
