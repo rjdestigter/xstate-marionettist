@@ -1,0 +1,59 @@
+{
+  "name": "xstate-marionettist-example",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@rmwc/button": "^6.1.4",
+    "@rmwc/formfield": "^6.1.4",
+    "@rmwc/textfield": "^6.1.4",
+    "@rmwc/theme": "^6.1.4",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "@types/jest": "^24.0.0",
+    "@types/node": "^12.0.0",
+    "@types/react": "^16.9.0",
+    "@types/react-dom": "^16.9.0",
+    "@xstate/inspect": "^0.1.1",
+    "@xstate/react": "^1.0.1",
+    "concurrently": "^5.3.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.3",
+    "sass": "^1.27.0",
+    "serve": "^11.3.2",
+    "typescript": "~3.7.2",
+    "xstate-codegen": "^0.2.1"
+  },
+  "scripts": {
+    "start": "npm run xstate-codegen -- --once && concurrently \"npm run xstate-codegen\" \"npm run dev\"",
+    "dev": "SKIP_PREFLIGHT_CHECK=true react-scripts start",
+    "build": "npm run xstate-codegen -- --once && SKIP_PREFLIGHT_CHECK=true react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "xstate-codegen": "xstate-codegen ./src/**/machine.ts",
+    "serve:e2e": "serve -s -p 7777 build",
+    "e2e": "cross-env REACT_APP_ENV_TARGET=dev DEBUG=e2e* HEADLESS=FALSE jest --runInBand -c jest.config.js",
+    "typedoc": "npx typedoc"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.2",
+    "jasmine-fail-fast": "^2.0.1",
+    "ts-jest": "^26.4.1"
+  }
+}
