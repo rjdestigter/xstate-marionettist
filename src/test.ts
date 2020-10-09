@@ -74,7 +74,7 @@ const parseActions = (buffer: Deferred[], debug: (log: any) => void) => (
       }
 
       case "waitForSelector": {
-        await page.waitForSelector(`[data-testid="${action[1]}"`);
+        await page.waitForSelector(`[data-testid~="${action[1]}"`);
         break;
       }
 
@@ -88,7 +88,7 @@ const parseActions = (buffer: Deferred[], debug: (log: any) => void) => (
 
       case "expectProperty": {
         const element = await page.waitForSelector(
-          `[data-testid="${action[1]}"]`
+          `[data-testid~="${action[1]}"]`
         );
         const value = await page.evaluate(
           (el, selector) => el[selector],

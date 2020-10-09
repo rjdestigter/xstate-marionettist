@@ -12,7 +12,7 @@ const configuration: Configuration = {
       deferrals: ["submitting"],
       outcomes: {
         BAD: {
-          status: 500,
+          status: 400,
           body: "Invalid token",
         },
         OK: {
@@ -28,7 +28,12 @@ const configuration: Configuration = {
   initial: "noop",
   states: {
     noop: {
-      tests: [["waitForSelector", "frm-login"]],
+      tests: [
+        ["waitForSelector", "frm-login"],
+        ["waitForSelector", "txt-email"],
+        ["waitForSelector", "txt-password"],
+        ["expectProperty", "btn-login", "disabled", false],
+      ],
       on: {
         LOGIN: {
           target: "authenticating",
@@ -58,14 +63,14 @@ const configuration: Configuration = {
     failure: {
       tests: [
         ["expectProperty", "btn-login", "disabled", true],
-        ["waitForSelector", "txt-email-helptext"],
         ["resolve", "submitting"],
+        ["waitForSelector", "txt-email-helptext-error"],
       ],
       on: {
-        ANY: {
+        NOOP: {
           target: "noop",
-        },
-      },
+        }
+      }
     },
     authenticated: {
       tests: [

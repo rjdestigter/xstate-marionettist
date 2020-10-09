@@ -41,7 +41,7 @@ const Login = (props: propsLogin) => {
           theme: !!props.error ? "error" : [],
           children: props.error || "What is your email address?",
           persistent: !!props.error,
-          'data-testid': 'txt-email-helptext'
+          "data-testid": `txt-email-helptext${!!props.error ? ' txt-email-helptext-error' : ''}`,
         }}
       />
       <br />

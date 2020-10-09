@@ -21,10 +21,12 @@ export const authenticate = (credentials: {
         return Promise.reject(`${error}`)
       }
     }),
-    T.map(() => ({
-      access_token: 'foobar',
-      refresh_token: 'abc123'
-    }))
+    T.chain(
+      response => () => Promise.all([
+        Promise.resolve(response.status),
+        response.status === 200 ? response.json() : response.text()
+      ])
+    )
   );
 
 export default authenticate;
