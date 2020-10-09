@@ -103,8 +103,6 @@ export const makeOnRequest = (
         },
         body: JSON.stringify({}),
       });
-    } else if (/googleapis/.test(url)) {
-      return interceptedRequest.abort();
     }
 
     return interceptedRequest.continue();
