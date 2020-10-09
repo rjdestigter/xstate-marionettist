@@ -19,15 +19,17 @@ Clone or fork this repository and run:
 #: npm test
 ```
 
-Running `npm install` will install both the dependencies in of project as well as those of the example project in `./examples`.
+Running `npm install` will install both the dependencies of this project as well as those of the example project in `./examples`.
 
-Running `npm test` will:
+Running `CI=true && NODE_ENV=production npm test` will:
 
 1. Build the project
 2. `cd` into the project folder and
 3. `run`npm run e2e` in the example project which will
 4. Build the project (`npm run build`)
 5. Perform the example end-to-end test.
+
+You can also start up the example ReactJS project in development mode running at localhost:3000 and just run `npm test` in the root of the project.
 
 The example test configuration can be found in [`./examples/xstate-marionettist-example/src/apps/auth/auth.e2e.ts`](examples/xstate-marionettist-example/src/apps/auth/auth.e2e.ts)
 

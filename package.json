@@ -51,7 +51,7 @@
     "test": "npm run build && cd examples/xstate-marionettist-example && npm run e2e",
     "build:declaration": "tsc --build ./tsconfig.dec.json",
     "prepare": "cd examples/xstate-marionettist-example && npm install",
-    "prepublishOnly": "npm test"
+    "prepublishOnly": "CI=true NODE_ENV=production npm test"
   },
   "files": [
     "dist"
