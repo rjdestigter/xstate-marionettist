@@ -6,7 +6,7 @@ module.exports = {
     usedPortAction: "ignore",
   },
   launch: {
-    headless: process.env.HEADLESS === "FALSE" ? false : true,
+    headless: !!process.env.CI,
     slowMo: 10,
     args: /true/i.test(process.env.LOCAL_CI)
       ? []
