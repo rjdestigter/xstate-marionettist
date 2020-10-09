@@ -33,6 +33,7 @@ const configuration: Configuration = {
         ["waitForSelector", "txt-email"],
         ["waitForSelector", "txt-password"],
         ["expectProperty", "btn-login", "disabled", false],
+        ["page", (page) => page.waitForSelector("[data-testid='btn-login']")],
       ],
       on: {
         LOGIN: {
@@ -69,8 +70,8 @@ const configuration: Configuration = {
       on: {
         NOOP: {
           target: "noop",
-        }
-      }
+        },
+      },
     },
     authenticated: {
       tests: [

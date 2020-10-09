@@ -1,7 +1,15 @@
 import * as d from "io-ts/lib/Decoder";
+import { Page } from "puppeteer";
 
+export const string: d.Decoder<unknown, string> = {
+  decode: (u) => (typeof u === 'string' ? d.success(u) : d.failure(u, 'string'))
+}
 const actionDecoder = d.union(
   d.tuple(d.literal("delay"), d.number),
+  d.tuple(d.literal("page"), {
+    decode: (fn) =>
+      typeof fn === "function" ? d.success(fn as (page: Page) => unknown | Promise<unknown>) : d.failure(fn, "Function: (page: Page) => any"),
+  }),
   d.tuple(
     d.union(
       d.literal("waitForSelector"),

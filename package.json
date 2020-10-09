@@ -1,9 +1,18 @@
 {
   "name": "xstate-marionettist",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "browser": "dist/index.umd.js",
+  "author": "John de Stigter <johndestigter@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rjdestigter/xstate-marionettist.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rjdestigter/xstate-marionettist/issues"
+  },
   "dependencies": {
     "debug": "^4.2.0",
     "fp-ts": "^2.8.3",
@@ -41,7 +50,8 @@
     "build": "tsc",
     "test": "npm run build && cd examples/xstate-marionettist-example && npm run e2e",
     "build:declaration": "tsc --build ./tsconfig.dec.json",
-    "postinstall": "cd examples/xstate-marionettist-example && npm install"
+    "prepare": "cd examples/xstate-marionettist-example && npm install",
+    "prepublishOnly": "npm test"
   },
   "files": [
     "dist"

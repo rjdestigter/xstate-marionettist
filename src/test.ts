@@ -23,6 +23,11 @@ const parseActions = (buffer: Deferred[], debug: (log: any) => void) => (
     debug(action.join(" -> "));
 
     switch (action[0]) {
+      case "page": {
+        await action[1](page)
+        break;
+      }
+
       case "delay": {
         await delay(action[1]);
         break;

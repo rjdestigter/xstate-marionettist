@@ -8,6 +8,5 @@ module.exports = {
   moduleNameMapper: {
     "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
   },
-  // setupFiles: ["./env/env.js"],
   setupFilesAfterEnv: ["./jest-e2e-setup.js", "expect-puppeteer"],
 };
