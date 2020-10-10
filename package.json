@@ -1,6 +1,6 @@
 {
   "name": "xstate-marionettist",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "main": "dist/index.js",
   "bin": "dist/xstate-marionette.js",
   "browser": "dist/index.umd.js",
@@ -54,7 +54,7 @@
     "test": "npm run build && cd examples/xstate-marionettist-example && npm run e2e",
     "build:declaration": "tsc --build ./tsconfig.dec.json",
     "prepare": "cd examples/xstate-marionettist-example && npm install",
-    ":prepublishOnly": "CI=true NODE_ENV=production npm test"
+    "prepublishOnly": "CI=true NODE_ENV=production npm test"
   },
   "files": [
     "dist"
