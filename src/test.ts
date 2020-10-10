@@ -36,8 +36,8 @@ const parseActions = (wrap: (str: string) => string) => (
       }
 
       case "click": {
-        const names = Array.isArray(action[1]) ? action[1] : [action[1]]
-        await Promise.all(names.map(_ => page.click(wrap(_))));
+        const names = Array.isArray(action[1]) ? action[1] : [action[1]];
+        await Promise.all(names.map((_) => page.click(wrap(_))));
         break;
       }
 
@@ -53,12 +53,14 @@ const parseActions = (wrap: (str: string) => string) => (
 
       case "defer": {
         const names = Array.isArray(action[1]) ? action[1] : [action[1]];
-        await Promise.all(names.map((_) => {
-          const deferred = defer(_, _);
-          debug(`deferring -> ${deferred.id}`);
-          buffer.push(deferred);
-          debug(`buffer.length -> ${buffer.length}`);
-        }));        
+        await Promise.all(
+          names.map((_) => {
+            const deferred = defer(_, _);
+            debug(`deferring -> ${deferred.id}`);
+            buffer.push(deferred);
+            debug(`buffer.length -> ${buffer.length}`);
+          })
+        );
 
         break;
       }
@@ -81,9 +83,7 @@ const parseActions = (wrap: (str: string) => string) => (
 
       case "waitForSelector": {
         const names = Array.isArray(action[1]) ? action[1] : [action[1]];
-        await Promise.all(
-          names.map((_) => page.waitForSelector(wrap(_)))
-        );   
+        await Promise.all(names.map((_) => page.waitForSelector(wrap(_))));
         break;
       }
 
@@ -144,7 +144,7 @@ const defaultPorts = {
 export type Options = {
   selectorWrapper?: (selector: string) => string;
   server?: string;
-  xstateInspect?: boolean,
+  xstateInspect?: boolean;
   ports?: {
     ci?: number;
     prod?: number;
@@ -162,7 +162,7 @@ export function make(
     selectorWrapper: defaultSelectorWrapper,
     ports: defaultPorts,
     server: "http://localhost",
-    xstateInspect: false
+    xstateInspect: false,
   }
 ) {
   const ports = { ...defaultPorts, ...ports_ };
@@ -178,10 +178,10 @@ export function make(
       const config = configuration.right;
 
       describe(`Auto-generated: ${config.id}`, () => {
-        const debugPlan: (log: any) => void = debug(`e2e:pln (${config.id})`);
-        const debugPath: (log: any) => void = debug(`e2e:pth (${config.id})`);
-        const debugTest: (log: any) => void = debug(`e2e:tst (${config.id})`);
-        const debugEvent: (log: any) => void = debug(`e2e:evt (${config.id})`);
+        const debugPlan = (...args: any[]) => debug(`e2e(${config.id}): ► PLAN`)(args.join(' ► '));
+        const debugPath = (...args: any[]) => debug(`e2e(${config.id}): ► PATH`)(args.join(' ► '));
+        const debugTest = (...args: any[]) => debug(`e2e(${config.id}): ► TEST`)(args.join(' ► '));
+        const debugEvent = (...args: any[]) => debug(`e2e(${config.id}): ► EVENT`)(args.join(' ► '));
 
         const machineTemplate: any = {
           id: config.id,
@@ -307,6 +307,12 @@ export function make(
 
                 if (config.viewport) await page.setViewport(config.viewport);
 
+                if (config.beforVisit) {
+                  await parseActions(selectorWrapper)(buffer, debugEvent)(
+                    config.beforVisit
+                  )(page);
+                }
+
                 const visitPath = /^\//.test(config.visit.path)
                   ? config.visit.path
                   : `/${config.visit.path}`;
@@ -321,6 +327,16 @@ export function make(
 
                 await page.goto(url);
 
+                await page.waitForSelector('body')
+
+                await page.evaluate(
+                  `document.body.setAttribute("data-marionettist-path-index", ${pathIndex})`
+                );
+
+                await page.evaluate(
+                  `document.body.setAttribute("data-marionettist-plan-index", ${planIndex})`
+                );
+                
                 await path.test(page);
 
                 while (buffer.length > 0) {

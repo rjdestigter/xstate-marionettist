@@ -47,6 +47,7 @@ const jsonDecoder: d.Decoder<unknown, any> = d.lazy("JSON", () =>
 
 const configDecoder = d.intersect(
   d.partial({
+    beforVisit: d.array(actionDecoder),
     apis: d.array(
       d.intersect(d.type({ path: d.string }))(
         d.partial({

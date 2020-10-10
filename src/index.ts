@@ -1,1 +1,1 @@
-export { default, Action, Configuration } from './test'
+export { default, Action, Configuration, make } from "./test";

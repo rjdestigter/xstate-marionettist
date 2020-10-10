@@ -6,6 +6,8 @@ import { Deferred } from "./delay";
 
 import { Configuration } from "./decoder";
 
+const escapeRegExp = (str: string) =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 /**
  * Event handler for intercepting network requests during tests.
  *
@@ -17,24 +19,69 @@ export const makeOnRequest = (
   buffer: Deferred[] = [],
   apis: Configuration["apis"] = []
 ) => {
-  const debugValue = debug(`e2e:val:${id}`);
-  const debugReq = debug(`e2e:req:${id}`);
-
   return async (interceptedRequest: Request): Promise<void> => {
-    const frameUrl = interceptedRequest.frame()?.url() || "";
+    const frame = interceptedRequest.frame();
     const url = interceptedRequest.url();
 
-    // if (apiRx.test(url)) {
+    debug("e2e")(url);
+
+    if (/xstate-inspect/.test(url)) {
+      return interceptedRequest.continue();
+    }
+
     const matchingApi = apis.find((api) =>
-      new RegExp(api.path).test(interceptedRequest.url())
+      new RegExp(escapeRegExp(api.path)).test(url)
     );
+
+    matchingApi && debug("e2e time")("start -> " + matchingApi.path);
+    (await matchingApi) && frame?.waitForSelector("body");
+
+    const pathIndex = matchingApi
+      ? Number(
+          await frame?.evaluate(
+            'document.body.getAttribute("data-marionettist-path-index")'
+          )
+        )
+      : -1;
+
+    const planIndex = matchingApi
+      ? Number(
+          await frame?.evaluate(
+            'document.body.getAttribute("data-marionettist-plan-index")'
+          )
+        )
+      : -1;
+    matchingApi && debug("e2e time")("start -> " + matchingApi.path);
+
+    const debugReq = (...args: string[]) =>
+      debug(
+        `e2e(${id}) ► path(${pathIndex}) ► plan(${planIndex}) ► req(${url})`
+      )(args.join(" ► "));
+
+    matchingApi && debugReq("API", matchingApi.path);
+
+    let outcome = "*";
+    if (matchingApi && interceptedRequest.method() !== "OPTIONS") {
+      debugReq("PATTERNS", ...failurePattern[planIndex][pathIndex]);
+      debugReq("OUTCOMES", ...Object.keys(matchingApi.outcomes || { "*": {} }));
+
+      const outcomeIndex = failurePattern[planIndex][pathIndex].findIndex(
+        (outcome) => !!matchingApi.outcomes?.[outcome]
+      );
+
+      outcome = failurePattern[planIndex][pathIndex][outcomeIndex] || "*";
+
+      outcomeIndex >= 0 &&
+        failurePattern[planIndex][pathIndex].splice(outcomeIndex, 1);
+
+      debugReq("OUTCOME", outcome);
+    }
 
     if (
       interceptedRequest.method() !== "OPTIONS" &&
       matchingApi?.deferrals != null
     ) {
-      debugReq(`BUF ► LENGTH ► ${interceptedRequest.url()}`);
-      debugReq(`BUF ► LENGTH ► ${buffer.length}`);
+      debugReq("buffer.length", "" + buffer.length);
 
       const deferrals = buffer.filter((deferred) =>
         matchingApi.deferrals!.includes(deferred.id)
@@ -43,15 +90,11 @@ export const makeOnRequest = (
         const deferred = deferrals[0];
 
         if (deferred) {
-          debugReq(`BUF ► WAIT ► ${deferred.id}`);
-          debugReq(`BUF ► WAIT ► ${interceptedRequest.method()}`);
-          debugReq(`BUF ► WAIT ► ${interceptedRequest.url()}`);
+          debugReq("buffer.wait", deferred.id);
 
-          const result = await deferred;
+          await deferred;
           deferrals.shift();
-          debugReq(`BUF ► RESOLVED ► ${result}`);
-          debugReq(`BUF ► RESOLVED ► ${interceptedRequest.method()}`);
-          debugReq(`BUF ► RESOLVED ► ${interceptedRequest.url()}`);
+          debugReq("buffer.resume", deferred.id);
         }
       }
     }
@@ -67,23 +110,18 @@ export const makeOnRequest = (
         });
       }
 
-      debugReq(`REQ ► ${interceptedRequest.method()} ► ${url}`);
-
-      const [, pathIndex, planIndex] = (frameUrl.match(/\d+/g) || []).map(
-        Number
-      );
-
-      const outcome = failurePattern[planIndex][pathIndex].shift() || "*";
-
-      const apiOutcome = matchingApi?.outcomes
-        ? matchingApi?.outcomes[outcome] || matchingApi?.outcomes["*"]
-        : undefined;
+      const apiOutcome =
+        matchingApi.outcomes?.[outcome] || matchingApi.outcomes?.["*"];
 
       if (apiOutcome) {
         if (apiOutcome.status === -1) {
-          debugValue(`REQ ► Aborted`);
+          debugReq("Aborted");
           return interceptedRequest.abort();
         }
+
+        const body = JSON.stringify(apiOutcome.body || {});
+
+        debugReq("response", body);
 
         return interceptedRequest.respond({
           status: apiOutcome.status || 200,
@@ -91,9 +129,11 @@ export const makeOnRequest = (
           headers: {
             "Access-Control-Allow-Origin": "*",
           },
-          body: JSON.stringify(apiOutcome.body || {}),
+          body,
         });
       }
+
+      debugReq("response", "{}");
 
       return interceptedRequest.respond({
         status: 200,
@@ -104,6 +144,8 @@ export const makeOnRequest = (
         body: JSON.stringify({}),
       });
     }
+
+    debugReq("continue");
 
     return interceptedRequest.continue();
   };
