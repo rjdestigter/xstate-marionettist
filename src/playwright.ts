@@ -1,12 +1,11 @@
 import * as E from "fp-ts/lib/Either";
 import { createMachine } from "xstate";
 import { createModel } from "@xstate/test";
-import { Page } from "puppeteer";
+import { Page, Route } from "playwright";
 import debug from "debug";
 
 import delay, { defer, Deferred } from "./delay";
 
-import { makeOnRequest } from "./api";
 import { assign } from "xstate";
 
 import decode, {
@@ -14,10 +13,12 @@ import decode, {
   Configuration as TConfiguration,
 } from "./decoder";
 
+declare const page: Page;
+
 const parseActions = (wrap: (str: string) => string) => (
   buffer: Deferred[],
   debug: (log: any) => void
-) => (actions: TAction[]) => async (page: Page) => {
+) => (actions: TAction<Page>[]) => async (page: Page) => {
   for (let i = 0; i < actions.length; i++) {
     const action = actions[i];
 
@@ -47,7 +48,7 @@ const parseActions = (wrap: (str: string) => string) => (
       }
 
       case "select": {
-        await page.select(wrap(action[1]), action[2]);
+        await page.selectOption(wrap(action[1]), action[2]);
         break;
       }
 
@@ -98,13 +99,17 @@ const parseActions = (wrap: (str: string) => string) => (
       }
 
       case "expectProperty": {
-        const element = await page.waitForSelector(wrap(action[1]));
+        const element = await page.waitForSelector(wrap(action[1]), {
+          state: 'attached'
+        });
+        debug(`expectProperty -> element -> ${!!element}`);
 
-        const value = await page.evaluate(
-          (el, selector) => el[selector],
-          element,
-          action[2]
+        const value = await page.evaluate<any, [typeof element, string]>(
+          ([el, selector]) => el[selector as keyof typeof el],
+          [element, action[2]]
         );
+
+        debug(`expectProperty -> value -> ${value}`);
 
         expect(value).toBe(action[3]);
 
@@ -114,7 +119,7 @@ const parseActions = (wrap: (str: string) => string) => (
   }
 };
 
-const parseActionsToAssign = (actions: TAction[]) =>
+const parseActionsToAssign = (actions: TAction<Page>[]) =>
   actions
     .map((action) => {
       if (typeof action === "function") {
@@ -136,8 +141,8 @@ const defaultSelectorWrapper = (selector: string) =>
   `[data-testid~="${selector}"]`;
 
 const defaultPorts = {
-  ci: 7777,
-  prod: 7777,
+  ci: 9999,
+  prod: 9999,
   dev: 3000,
 };
 
@@ -172,16 +177,22 @@ export function make(
     ci && ports.ci ? ports.ci : ci || prod ? ports.ci || ports.prod : ports.dev;
 
   return (json: any) => {
-    const configuration = decode(json);
+    const configuration = decode<Page>(json);
 
     if (E.isRight(configuration)) {
       const config = configuration.right;
 
       describe(`Auto-generated: ${config.id}`, () => {
-        const debugPlan = (...args: any[]) => debug(`e2e(${config.id}): ► PLAN`)(args.join(' ► '));
-        const debugPath = (...args: any[]) => debug(`e2e(${config.id}): ► PATH`)(args.join(' ► '));
-        const debugTest = (...args: any[]) => debug(`e2e(${config.id}): ► TEST`)(args.join(' ► '));
-        const debugEvent = (...args: any[]) => debug(`e2e(${config.id}): ► EVENT`)(args.join(' ► '));
+        const debugPlan = (...args: any[]) =>
+          debug(`e2e(${config.id}): ► PLAN`)(args.join(" ► "));
+        const debugPath = (...args: any[]) =>
+          debug(`e2e(${config.id}): ► PATH`)(args.join(" ► "));
+        const debugTest = (...args: any[]) =>
+          debug(`e2e(${config.id}): ► TEST`)(args.join(" ► "));
+        const debugEvent = (...args: any[]) =>
+          debug(`e2e(${config.id}): ► EVENT`)(args.join(" ► "));
+        const debugRoute = (...args: any[]) =>
+          debug(`e2e(${config.id}): ► ROUTE`)(args.join(" ► "));
 
         const machineTemplate: any = {
           id: config.id,
@@ -205,9 +216,9 @@ export function make(
           const meta = tests && {
             test: async (page: Page) => {
               debugTest(`state: ${state}`);
-              return parseActions(selectorWrapper)(buffer, debugTest)(tests as TAction<Page>[])(
-                page
-              );
+              return parseActions(selectorWrapper)(buffer, debugTest)(
+                tests as TAction<Page>[]
+              )(page);
             },
           };
 
@@ -258,21 +269,100 @@ export function make(
         const buffer: Deferred[] = [];
         const failurePattern: string[][][] = [];
 
-        const onRequest = makeOnRequest(
-          config.id,
-          failurePattern,
-          buffer,
-          config.apis || []
-        );
+        const routers = config.apis?.map((api) => {
+          debugRoute("SETUP", api.path)
+          return [
+            `**${api.path}`,
+            async (route: Route) => {
+              debugRoute("INTERCEPT", api.path);
+
+
+              const pathIndex = Number(
+                await page?.evaluate(
+                  'document.body.getAttribute("data-marionettist-path-index")'
+                )
+              );
+
+              const planIndex = Number(
+                await page?.evaluate(
+                  'document.body.getAttribute("data-marionettist-plan-index")'
+                )
+              );
+
+              debugRoute("PATH", api.path, pathIndex);
+              debugRoute("PLAN", api.path, planIndex);
+
+
+              const outcomeIndex = failurePattern[planIndex][
+                pathIndex
+              ].findIndex((outcome) => !!api.outcomes?.[outcome]);
+
+              const outcome =
+                failurePattern[planIndex][pathIndex][outcomeIndex] || "*";
+
+              debugRoute("OUTCOME", api.path, outcome);
+
+              outcomeIndex >= 0 &&
+                failurePattern[planIndex][pathIndex].splice(outcomeIndex, 1);
+
+              const deferrals = buffer.filter((deferred) =>
+                api.deferrals?.includes(deferred.id)
+              );
+
+              while (deferrals.length > 0) {
+                const deferred = deferrals[0];
+
+                if (deferred) {
+                  debugRoute("WAIT", api.path, deferred.id);
+                  await deferred;
+                  deferrals.shift();
+                  debugRoute("CONT", api.path, deferred.id);
+                }
+              }
+
+              const apiOutcome = api.outcomes?.[outcome] || api.outcomes?.["*"];
+
+              if (apiOutcome) {
+                if (apiOutcome.status === -1) {
+                  return route.abort();
+                }
+
+                const body = JSON.stringify(apiOutcome.body || {});
+
+                return route.fulfill({
+                  status: apiOutcome.status || 200,
+                  contentType: "application/json",
+                  headers: {
+                    "Access-Control-Allow-Origin": "*",
+                  },
+                  body,
+                });
+              }
+
+              return route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                headers: {
+                  "Access-Control-Allow-Origin": "*",
+                },
+                body: JSON.stringify({}),
+              });
+            },
+          ] as const;
+        });
 
         beforeAll(async () => {
-          await page.setRequestInterception(true);
-          page.on("request", onRequest);
+          await Promise.all([routers?.map(([path, cb]) => {
+            debugRoute("BEFORE", path)
+            return page.route(path, cb);
+          })]);
         });
 
         afterAll(async () => {
-          page.off("request", onRequest);
-          await page.setRequestInterception(false);
+          await Promise.all([routers?.map(([path, cb]) => {
+            debugRoute("AFTER", path);
+            return page.unroute(path, cb);
+          })]);
         });
 
         const model = createModel<Page>(machine).withEvents(eventMap);
@@ -307,7 +397,7 @@ export function make(
                 debugPath(path.description);
                 debugPath(outcomes.join(", "));
 
-                if (config.viewport) await page.setViewport(config.viewport);
+                // if (config.viewport) await page.setViewport(config.viewport);
 
                 if (config.beforVisit) {
                   await parseActions(selectorWrapper)(buffer, debugEvent)(
@@ -329,7 +419,7 @@ export function make(
 
                 await page.goto(url);
 
-                await page.waitForSelector('body')
+                await page.waitForSelector("body");
 
                 await page.evaluate(
                   `document.body.setAttribute("data-marionettist-path-index", ${pathIndex})`
@@ -338,7 +428,7 @@ export function make(
                 await page.evaluate(
                   `document.body.setAttribute("data-marionettist-plan-index", ${planIndex})`
                 );
-                
+
                 await path.test(page);
 
                 while (buffer.length > 0) {
