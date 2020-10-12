@@ -32,10 +32,11 @@
     "build": "npm run xstate-codegen -- --once && npm run compile",
     "compile": "SKIP_PREFLIGHT_CHECK=true react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
     "xstate-codegen": "xstate-codegen ./src/**/machine.ts",
-    "serve:e2e": "serve -s -p 7777 build",
-    "e2e": "cross-env DEBUG=e2e* jest --runInBand -c jest.config.js",
+    "serve:puppeteer": "serve -s -p 7777 build",
+    "serve:playwright": "serve -s -p 9999 build",
+    "e2e:puppeteer": "cross-env DEBUG=e2e* jest --runInBand -c jest-config.puppeteer.js",
+    "e2e:playwright": "cross-env DEBUG=e2e* jest --runInBand -c jest-config.playwright.js",
     "typedoc": "npx typedoc"
   },
   "eslintConfig": {
@@ -56,6 +57,7 @@
   "devDependencies": {
     "cross-env": "^7.0.2",
     "jasmine-fail-fast": "^2.0.1",
+    "jest-playwright-preset": "^1.3.1",
     "ts-jest": "^26.4.1"
   }
 }

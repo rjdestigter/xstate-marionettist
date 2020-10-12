@@ -9,7 +9,7 @@ module.exports =
       }
     : {
         server: {
-          command: `npm run build && npm run serve:e2e`,
+          command: `npm run serve:puppeteer`,
           port: 7777,
           launchTimeout: 300000,
           usedPortAction: "ignore",
