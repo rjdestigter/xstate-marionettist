@@ -1,12 +1,12 @@
 # XState Marionettist
 
-> Model based testing with [XState] + [Puppeteer] made easy
+> Model based testing with [XState] + [Puppeteer] or [Playwright] made easy
 
-The goal of this project is to define a simple configuration "language" allowing developers to create model based end-to-end tests for their applications using [Jest], [XState], and [Puppeteer].
+The goal of this project is to define a simple configuration "language" allowing developers to create model based end-to-end tests for their applications using [Jest], [XState], and [Puppeteer] or [Playwright].
 
 It abtracts away defining the test machine, creating it's model, and the architecture needed to communicate between intercepted network requests and the model.
 
-You should be somewhat familiar with [XState] but you don't necessarily need to be comfortable with [Puppeteer].
+You should be somewhat familiar with [XState] but you don't necessarily need to be comfortable with [Puppeteer] or [Playwright].
 
 The configuration is strictly typed using [io-ts]' `Decoder` API.
 
@@ -43,30 +43,31 @@ npm install xstate-marionettist
 
 ### Peer dependencies
 
-`xstate-marionettist` expects the following packages to be part of your project:
+Depending on whether you ar uing [Playwright] or [Puppeteer], `xstate-marionettist` expects the following packages to be part of your project:
 
 - `@xstate/test`
 - `jest`
-- `jest-puppeteer`
 - `puppeteer`
+- `jest-puppeteer`
+- `playwright`
+- `jest-playwright-prese`
 - `xstate`
 
 ### Implementation
 
-The example project is a good example of implementeting testing with [Jest] and [Puppeteer]. Feel free to open an issue or send me questions if you are having trouble with this. You can open an issue, contact me on [Twitter] and I'm also active in the Statecharts chat on [Spectrum].
+The example project is a good example of implementeting testing with [Jest] and [Puppeteer] or [Playwright]. Feel free to open an issue or send me questions if you are having trouble with this. You can open an issue, contact me on [Twitter] and I'm also active in the Statecharts chat on [Spectrum].
 
 You should at least implement similiar [Jest] configuration files:
 
-- [`jest.config.js`](examples/xstate-marionettist-example/jest.config.js)
+- [`jest-config.puppeteer.js`](examples/xstate-marionettist-example/jest.config.js)
 - [`jest-puppeteer.config.js`](examples/xstate-marionettist-example/jest.config.js)
 
+Or if you are using [Playwright]
+
+- [`jest-config.playwright.js`](examples/xstate-marionettist-example/jest.config.js)
+- [`jest-playwright.config.js`](examples/xstate-marionettist-example/jest.config.js)
+
 [`jest-e2e-setup.js`](examples/xstate-marionettist-example/jest-e2e-setup.js) is optional but helps with bailing out quickly when tests are failing. You'll need to add `jasmine-fail-fast` as a dependency to your project for this.
-
-The example project's test command loos like:
-
-```
-"e2e": "cross-env DEBUG=e2e* HEADLESS=FALSE jest --runInBand -c jest.config.js",
-```
 
 ## Configuration API
 
@@ -97,6 +98,10 @@ Actions are instructions for [Jest] and / or [Puppeteer] and can be attached to 
 ```ts
 // custom-test.ts
 import { make } from "xstate-marionettist";
+
+// or if you are using Playwright
+
+import { makePlay } from "xstate-marionettist"
 
 export const test = make({ selectorWrapper: (name: string) => name }); // for no wrapping at all
 export const test = make({
@@ -267,6 +272,7 @@ Before allowing the model to transition back to _noop_ state we block with a tes
 
 [xstate]: https://xstate.js.org/
 [puppeteer]: https://pptr.dev/
+[playwright]: https://playwright.dev/
 [jest]: https://jestjs.io/
 [io-ts]: https://github.com/gcanti/io-ts
 [twitter]: https://twitter.com/chautelly
