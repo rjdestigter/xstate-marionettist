@@ -1,7 +1,7 @@
 import * as E from "fp-ts/lib/Either";
 import { createMachine } from "xstate";
 import { createModel } from "@xstate/test";
-import { Page, Route } from "playwright";
+import { ChromiumBrowserContext, Page, Route } from "playwright";
 import debug from "debug";
 
 import delay, { defer, Deferred } from "./delay";
@@ -272,7 +272,7 @@ export function make(
         const routers = config.apis?.map((api) => {
           debugRoute("SETUP", api.path)
           return [
-            `**${api.path}`,
+            `**${api.path}**`,
             async (route: Route) => {
               debugRoute("INTERCEPT", api.path);
 
@@ -352,6 +352,10 @@ export function make(
         });
 
         beforeAll(async () => {
+          await ((context as unknown) as ChromiumBrowserContext).addInitScript(() => {
+            navigator.serviceWorker.register = () => new Promise(() => void 0);
+          });
+          
           await Promise.all([routers?.map(([path, cb]) => {
             debugRoute("BEFORE", path)
             return page.route(path, cb);
