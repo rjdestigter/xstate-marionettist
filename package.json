@@ -1,6 +1,6 @@
 {
   "name": "xstate-marionettist",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "main": "dist/index.js",
   "bin": "dist/xstate-marionette.js",
   "browser": "dist/index.umd.js",
