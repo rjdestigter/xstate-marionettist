@@ -59,13 +59,13 @@ The example project is a good example of implementeting testing with [Jest] and 
 
 You should at least implement similiar [Jest] configuration files:
 
-- [`jest-config.puppeteer.js`](examples/xstate-marionettist-example/jest.config.js)
-- [`jest-puppeteer.config.js`](examples/xstate-marionettist-example/jest.config.js)
+- [`jest-config.puppeteer.js`](examples/xstate-marionettist-example/jest-config.puppeteer.js)
+- [`jest-puppeteer.config.js`](examples/xstate-marionettist-example/jest-puppeteer.config.js)
 
 Or if you are using [Playwright]
 
-- [`jest-config.playwright.js`](examples/xstate-marionettist-example/jest.config.js)
-- [`jest-playwright.config.js`](examples/xstate-marionettist-example/jest.config.js)
+- [`jest-config.playwright.js`](examples/xstate-marionettist-example/jest-config.playwright.js)
+- [`jest-playwright.config.js`](examples/xstate-marionettist-example/jest-playwright.config.js)
 
 [`jest-e2e-setup.js`](examples/xstate-marionettist-example/jest-e2e-setup.js) is optional but helps with bailing out quickly when tests are failing. You'll need to add `jasmine-fail-fast` as a dependency to your project for this.
 
