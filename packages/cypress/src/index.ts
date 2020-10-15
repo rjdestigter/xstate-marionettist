@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-import { Action, defer, Deferred, make } from "xstate-marionettist";
+import { Action, defer, Deferred, delay, make } from "xstate-marionettist";
 
 type TestContext = typeof cy;
 
@@ -124,7 +124,7 @@ export const create = make(parseActions)(
               config.apis?.forEach((api) => {
                 cy.route2(
                   {
-                    path: new RegExp(`${api.path}`),
+                    path: new RegExp(api.path),
                   },
                   async (req) => {
                     const outcomeIndex = pattern[planIndex][
@@ -145,7 +145,7 @@ export const create = make(parseActions)(
                       const deferred = deferrals[0];
 
                       if (deferred) {
-                        await deferred;
+                        await Promise.race([deferred, delay(1500)])
                         deferrals.shift();
                       }
                     }
@@ -156,7 +156,7 @@ export const create = make(parseActions)(
                     if (apiOutcome) {
                       if (apiOutcome.status === -1) {
                         return req.destroy();
-                      }
+                      } 
 
                       return req.reply(
                         apiOutcome.status || 200,
@@ -166,13 +166,15 @@ export const create = make(parseActions)(
 
                     return req.reply(200, {});
                   }
-                );
+                ).as(api.deferrals?.[0] || '')
               });
 
               return cy.visit(url).then(() => {
                 path.test(cy).then(() => {
                   buffer.splice(0, buffer.length);
                 });
+                
+                cy.wait(50)
               });
             });
           });

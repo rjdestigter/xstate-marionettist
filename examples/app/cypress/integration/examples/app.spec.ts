@@ -29,11 +29,6 @@ const configuration: Configuration<typeof cy> = {
   ],
   outcomes: ["OK", "BAD"],
   initial: "noop",
-  beforeVisit: [
-    cy => {
-      debugger
-    }
-  ],
   states: {
     noop: {
       tests: [["waitForSelector", "btn-auth"]],

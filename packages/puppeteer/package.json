@@ -2,10 +2,10 @@
   "name": "xstate-marionettist-puppeteer",
   "version": "0.1.0",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
-    "./dist/**"
+    "./dist"
   ],
+  "types": "dist/index.d.ts",
   "author": "John de Stigter <johndestigter@gmail.com>",
   "license": "MIT",
   "repository": {
