@@ -1,0 +1,17 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/cypress"
+    },
+    {
+      "path": "./packages/playwright"
+    },
+    {
+      "path": "./packages/puppeteer"
+    }
+  ]
+}

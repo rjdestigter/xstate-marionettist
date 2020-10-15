@@ -1,12 +1,12 @@
 # XState Marionettist
 
-> Model based testing with [XState] + [Puppeteer] or [Playwright] made easy
+> Model based testing with [XState] + [Cypress] or [Puppeteer] or [Playwright] made easy
 
-The goal of this project is to define a simple configuration "language" allowing developers to create model based end-to-end tests for their applications using [Jest], [XState], and [Puppeteer] or [Playwright].
+The goal of this project is to define a simple configuration "language" allowing developers to create model based end-to-end tests for their applications using [XState] and [@xstate/test] incombination with [Cypress], [Puppeteer] or [Playwright] and [Jest].
 
 It abtracts away defining the test machine, creating it's model, and the architecture needed to communicate between intercepted network requests and the model.
 
-You should be somewhat familiar with [XState] but you don't necessarily need to be comfortable with [Puppeteer] or [Playwright].
+You should be somewhat familiar with [XState] but you don't necessarily need to be comfortable with [Puppeteer] or [Playwright]. If you are using [Cypress] and wanting to intercept and mock network requests you wil have have to enable the experimental [route2](https://docs.cypress.io/api/commands/route2.html#Comparison-to-cy-route) API.
 
 The configuration is strictly typed using [io-ts]' `Decoder` API.
 
@@ -15,23 +15,13 @@ The configuration is strictly typed using [io-ts]' `Decoder` API.
 Clone or fork this repository and run:
 
 ```bash
-#: npm install
-#: npm test
+yarn
+yarn test
 ```
 
-Running `npm install` will install both the dependencies of this project as well as those of the example project in `./examples`.
+Running `yarn` will install both the dependencies of this project as well as those of the example project in `./examples/app`.
 
-Running `CI=true && NODE_ENV=production npm test` will:
-
-1. Build the project
-2. `cd` into the project folder and
-3. `run`npm run e2e` in the example project which will
-4. Build the project (`npm run build`)
-5. Perform the example end-to-end test.
-
-You can also start up the example ReactJS project in development mode running at localhost:3000 and just run `npm test` in the root of the project.
-
-The example test configuration can be found in [`./examples/xstate-marionettist-example/src/apps/auth/auth.e2e.ts`](examples/xstate-marionettist-example/src/apps/auth/auth.e2e.ts)
+You can also start up the example ReactJS project in development mode running at _localhost:3000_ and just run `yarn test` in the root of the project. To run the example [Cypress] tests run `npx cypress open`
 
 ## Installation and project implementation
 
@@ -55,9 +45,30 @@ Depending on whether you ar uing [Playwright] or [Puppeteer], `xstate-marionetti
 
 ### Implementation
 
-The example project is a good example of implementeting testing with [Jest] and [Puppeteer] or [Playwright]. Feel free to open an issue or send me questions if you are having trouble with this. You can open an issue, contact me on [Twitter] and I'm also active in the Statecharts chat on [Spectrum].
+The example project is a good example of implementeting testing with [Cypress] or [Jest] with [Puppeteer] or [Playwright]. Feel free to open an issue or send me questions if you are having trouble with this. You can open an issue, contact me on [Twitter] and I'm also active in the Statecharts chat on [Spectrum].
 
-You should at least implement similiar [Jest] configuration files:
+#### Cypress
+
+```bash
+npm install xstate-marionettist-cypress
+```
+
+Be sure to enable `experimentalNetworkStubbing` _cypress.json_
+```json
+// cypress.json
+{
+  "experimentalNetworkStubbing": true
+}
+```
+
+#### Playwright or Puppeteer
+
+```bash
+npm install xstate-marionettist-playwright
+npm install xstate-marionettist-puppeteer
+```
+
+For usage with [Puppeteer] or [Playwright] you should at least implement similiar [Jest] configuration files:
 
 - [`jest-config.puppeteer.js`](examples/xstate-marionettist-example/jest-config.puppeteer.js)
 - [`jest-puppeteer.config.js`](examples/xstate-marionettist-example/jest-puppeteer.config.js)
@@ -93,18 +104,17 @@ Or if you are using [Playwright]
 
 ### Actions
 
-Actions are instructions for [Jest] and / or [Puppeteer] and can be attached to tests or events. By default, anything using a selector expects that is was defined using a `data-testid` attribute. All selector actions wrap names with: `[data-testid~="name"]` matching any words. You can override this behaviour by importing the `make` function rather than the `test` function from `xstate-marionettist` and create your own version of the `test` function:
+Actions are instructions and can be attached to tests or events. By default, anything using a selector expects that is was defined using a `data-testid` attribute. All selector actions wrap names with: `[data-testid~="name"]` matching any words. You can override this behaviour by importing the `make` function rather than the `test` function from `xstate-marionettist-....` and create your own version of the `test` function:
 
 ```ts
 // custom-test.ts
-import { make } from "xstate-marionettist";
+import { create } from "xstate-marionettist-cypress";
+import { create } from "xstate-marionettist-playwright";
+import { create } from "xstate-marionettist-puppeteer";
 
-// or if you are using Playwright
 
-import { makePlay } from "xstate-marionettist"
-
-export const test = make({ selectorWrapper: (name: string) => name }); // for no wrapping at all
-export const test = make({
+export const test = create({ selectorWrapper: (name: string) => name }); // for no wrapping at all
+export const test = create({
   selectorWrapper: (name: string) => `[data-my-custom-test-id="${name}"]`,
 });
 
@@ -114,7 +124,7 @@ import { test } from './custom-test'
 test({ ... })
 ```
 
-Other options that can be passed to `make` are:
+Other options that can be passed to `create` are:
 
 ```ts
 {
@@ -144,6 +154,7 @@ Availeable actions are:
 | Page function   | `(page: Page) => unknown                   | Promise<unknown>`                                                       | A function that receive puppeteer's `Page` object allowing you to execute whatever test or action you want with it. | `page => page.waitForSelector("#id.classname[attribute="value"])` |
 | delay           | `["delay", number]`                        | Delay a test or action.                                                 | `["delay", 1000]`                                                                                                   |
 | waitForSelector | `["waitForSelector", string]`              | Wait for a slice of DOM                                                 | `["waitForSelector", "btn-login"]`                                                                                  |
+| $ | `["$", string]`              | Wait for a slice of DOM                                                 | `["$", "btn-login"`                                                                                  |
 | waitForFocus    | `["waitForFocus", string]`                 | Wait for dom element to be the active one                               | `["waitForFocus", "txt-email"]`                                                                                     |
 | click           | `["click", string]`                        | Simulate a click on an element                                          | `["click", "btn-submit"]`                                                                                           |
 | type            | `["type", string]`                         | Simulate typing                                                         | `["type", "text-password", "123abc!"]`                                                                              |
@@ -270,6 +281,7 @@ The tests for this state first determine if the button is disabled since this sh
 
 Before allowing the model to transition back to _noop_ state we block with a test expecting an error message. The configuration and tests for the _authenticated_ state follow the same pattern.
 
+[cypress]: https://cypress.io/
 [xstate]: https://xstate.js.org/
 [puppeteer]: https://pptr.dev/
 [playwright]: https://playwright.dev/

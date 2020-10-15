@@ -1,0 +1,42 @@
+{
+  "name": "xstate-marionettist-playwright",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "./dist/**"
+  ],
+  "author": "John de Stigter <johndestigter@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rjdestigter/xstate-marionettist.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rjdestigter/xstate-marionettist/issues"
+  },
+  "dependencies": {
+    "debug": "4.2.0",
+    "xstate-marionettist": "0.7.0"
+  },
+  "peerDependencies": {
+    "@xstate/test": "^0.4.1",
+    "jest": "^26.x.x",
+    "jest-playwright-preset": "^1.3.1",
+    "playwright": "^1.5.1",
+    "xstate": "^4.13.0"
+  },
+  "devDependencies": {
+    "@types/debug": "0.0.30",
+    "@types/jest": "^26.x.x",
+    "@xstate/test": "^0.4.1",
+    "jest": "^26.x.x",
+    "jest-playwright-preset": "^1.3.1",
+    "playwright": "^1.5.1",
+    "typescript": "^4.1.0-dev.20201014",
+    "xstate": "^4.13.0"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
+}

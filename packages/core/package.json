@@ -1,0 +1,42 @@
+{
+  "name": "xstate-marionettist",
+  "version": "0.7.0",
+  "main": "dist/index.js",
+  "author": "John de Stigter <johndestigter@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rjdestigter/xstate-marionettist.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rjdestigter/xstate-marionettist/issues"
+  },
+  "dependencies": {
+    "fp-ts": "^2.8.3",
+    "io-ts": "^2.2.11"
+  },
+  "peerDependencies": {
+    "@xstate/test": "^0.4.1",
+    "xstate": "^4.13.0"
+  },
+  "devDependencies": {
+    "@xstate/test": "^0.4.1",
+    "typescript": "^4.1.0-dev.20201014",
+    "xstate": "^4.13.0"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "types": "./dist/index.d.ts",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,css,md}": "prettier --write"
+  }
+}
