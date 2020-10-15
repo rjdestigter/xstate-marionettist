@@ -14,3 +14,6 @@ export const defer = <T = any>(value: T, id: string): Deferred<T> => {
 
   return Object.assign(promise, { resolve, id });
 };
+
+export const delay = (milliseconds = 1000) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));

@@ -6,10 +6,10 @@
     },
     {
       "path": "./packages/cypress"
+    },
+    {
+      "path": "./packages/playwright"
     }
-    // {
-    //   "path": "./packages/playwright"
-    // },
     // {
     //   "path": "./packages/puppeteer"
     // },

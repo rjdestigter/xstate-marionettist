@@ -5,7 +5,9 @@
   "workspaces": {
     "packages": [
       "packages/core",
-      "packages/core"
+      "packages/cypress",
+      "packages/playwright",
+      "examples/app"
     ]
   },
   "author": "John de Stigter <johndestigter@gmail.com>",

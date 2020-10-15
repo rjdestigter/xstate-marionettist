@@ -1,6 +1,10 @@
-import { play as test, Configuration } from "../../../../../dist";
+import { Page } from "playwright";
+import test from "../../../../../packages/playwright";
+import { Configuration } from "../../../../../packages/core";
 
-const configuration: Configuration = {
+declare const page: Page
+
+const configuration: Configuration<Page> = {
   id: "main",
   viewport: { width: 1366, height: 768 },
   visit: {

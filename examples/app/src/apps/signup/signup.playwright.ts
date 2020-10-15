@@ -1,6 +1,10 @@
-import { play as test, Configuration } from "../../../../../dist";
+import { Page } from "playwright";
+import test from "../../../../../packages/playwright";
+import { Configuration } from "../../../../../packages/core";
 
-const configuration: Configuration = {
+declare const page: Page;
+
+const configuration: Configuration<Page> = {
   id: "signup",
   viewport: { width: 1366, height: 768 },
   visit: {
@@ -64,9 +68,7 @@ const configuration: Configuration = {
       },
     },
     failure: {
-      tests: [
-        ["expectProperty", "btn-register", "disabled", false],
-      ],
+      tests: [["expectProperty", "btn-register", "disabled", false]],
     },
     registrered: {
       tests: [
