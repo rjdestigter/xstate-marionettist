@@ -8,7 +8,7 @@ type TestContext = Page;
 declare const page: Page;
 declare const context: ChromiumBrowserContext;
 
-const logaction = debug("marionettist:action");
+const logaction = debug("marionettist(pw):action");
 
 const parseActions = (wrap: (str: string) => string) => (
   buffer: Deferred[]

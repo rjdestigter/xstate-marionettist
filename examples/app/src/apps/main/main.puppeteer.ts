@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { create } from "../../../../../packages/puppeteer/dist";
+import test from "../../../../../packages/puppeteer/dist";
 import { Configuration } from "xstate-marionettist";
 
 declare const page: Page;
@@ -74,7 +74,9 @@ const configuration: Configuration<Page> = {
         (page) =>
           page.waitForSelector('.mdc-button--outlined[data-testid="btn-auth"]'),
         (page) =>
-          page.waitForSelector('.mdc-button--outlined[data-testid="btn-main"]'),
+          page.waitForSelector(
+            '.mdc-button--outlined[data-testid="btn-main"]'
+          ),
         ["expectProperty", "content", "childElementCount", 2],
       ],
       on: {
@@ -91,4 +93,4 @@ const configuration: Configuration<Page> = {
   },
 };
 
-create({ ports: { ci: 9999 } })(configuration);
+test(configuration);

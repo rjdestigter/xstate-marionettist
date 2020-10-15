@@ -1,5 +1,5 @@
 import { Page } from "puppeteer";
-import { create } from "../../../../../packages/puppeteer/dist";
+import test from "../../../../../packages/puppeteer/dist";
 import { Configuration } from "xstate-marionettist";
 
 declare const page: Page;
@@ -80,4 +80,4 @@ const configuration: Configuration<Page> = {
   },
 };
 
-create({ ports: { ci: 9999 }})(configuration);
+test(configuration);

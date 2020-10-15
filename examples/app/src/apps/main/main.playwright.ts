@@ -1,8 +1,8 @@
 import { Page } from "playwright";
-import test from "../../../../../packages/playwright";
+import { create } from "../../../../../packages/playwright";
 import { Configuration } from "../../../../../packages/core";
 
-declare const page: Page
+declare const page: Page;
 
 const configuration: Configuration<Page> = {
   id: "main",
@@ -74,9 +74,7 @@ const configuration: Configuration<Page> = {
         (page) =>
           page.waitForSelector('.mdc-button--outlined[data-testid="btn-auth"]'),
         (page) =>
-          page.waitForSelector(
-            '.mdc-button--outlined[data-testid="btn-main"]'
-          ),
+          page.waitForSelector('.mdc-button--outlined[data-testid="btn-main"]'),
         ["expectProperty", "content", "childElementCount", 2],
       ],
       on: {
@@ -93,4 +91,4 @@ const configuration: Configuration<Page> = {
   },
 };
 
-test(configuration);
+create({ ports: { ci: 9999 } })(configuration);

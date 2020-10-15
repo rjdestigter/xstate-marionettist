@@ -1,5 +1,5 @@
 import { Page } from "playwright";
-import test from "../../../../../packages/playwright";
+import { create } from "../../../../../packages/playwright";
 import { Configuration } from "../../../../../packages/core";
 
 declare const page: Page;
@@ -33,7 +33,7 @@ const configuration: Configuration<Page> = {
   states: {
     noop: {
       tests: [
-        page => page.waitForSelector("div#root"),
+        (page) => page.waitForSelector("div#root"),
         ["click", "btn-auth"],
         ["waitForSelector", ["frm-login", "txt-password"]],
         ["waitForFocus", "txt-email"],
@@ -80,4 +80,4 @@ const configuration: Configuration<Page> = {
   },
 };
 
-test(configuration);
+create({ ports: { ci: 9999 } })(configuration);

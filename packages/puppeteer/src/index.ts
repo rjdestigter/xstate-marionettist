@@ -4,7 +4,7 @@ import { Action, defer, delay, Deferred, make } from "xstate-marionettist";
 import { makeOnRequest } from "./api";
 
 declare const page: Page
-const logaction = debug("marionettist:action");
+const logaction = debug("marionettist(pptr):action");
 
 const parseActions = (wrap: (str: string) => string) => (
   buffer: Deferred[]

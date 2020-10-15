@@ -1,5 +1,5 @@
 import { Page } from "playwright";
-import test from "../../../../../packages/playwright";
+import { create } from "../../../../../packages/playwright";
 import { Configuration } from "../../../../../packages/core";
 
 declare const page: Page;
@@ -79,4 +79,5 @@ const configuration: Configuration<Page> = {
   },
 };
 
-test(configuration);
+create({ ports: { ci: 9999 } })(configuration);
+
