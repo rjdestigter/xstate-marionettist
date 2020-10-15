@@ -1,4 +1,4 @@
-import test from "../../../../../packages/cypress/dist";
+import test from "../../test";
 import { Configuration } from "../../../../../packages/core/dist";
 
 import {} from "cypress";

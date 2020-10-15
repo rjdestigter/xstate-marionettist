@@ -1,4 +1,4 @@
-import test from "../../../../../packages/cypress/dist";
+import test from "../../test";
 import { Configuration } from "../../../../../packages/core/dist";
 
 import {} from "cypress";
@@ -29,6 +29,11 @@ const configuration: Configuration<typeof cy> = {
   ],
   outcomes: ["OK", "BAD"],
   initial: "noop",
+  beforeVisit: [
+    cy => {
+      debugger
+    }
+  ],
   states: {
     noop: {
       tests: [["waitForSelector", "btn-auth"]],
