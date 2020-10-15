@@ -14,7 +14,7 @@ export const authenticate = (credentials: {
     T.of({}),
     T.chain(() => async () => {
       try {
-        return await fetch('http://localhost:3000/token') // .catch(reason => Promise.reject(reason))
+        return await fetch('/token') // .catch(reason => Promise.reject(reason))
       } catch (error) {
         return Promise.reject(`${error}`)
       }

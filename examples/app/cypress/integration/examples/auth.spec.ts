@@ -1,7 +1,9 @@
-/// <reference types="cypress" />
 import test from "../../../../../packages/cypress/dist";
+import { Configuration } from "../../../../../packages/core/dist";
 
-const configuration = {
+import {} from "cypress";
+
+const configuration: Configuration<typeof cy> = {
   id: "auth",
   viewport: { width: 1366, height: 768 },
   visit: {
@@ -29,18 +31,12 @@ const configuration = {
   initial: "noop",
   states: {
     noop: {
-      tests: [["waitForSelector", "btn-auth"]],
-      on: {
-        ROUTE_LOGIN: {
-          target: "login",
-          actions: [["click", "btn-auth"]],
-        },
-      },
-    },
-    login: {
       tests: [
-        ["waitForSelector", ["frm-login", "txt-email", "txt-password"]],
+        (page) => page.get("div#root"),
+        ["click", "btn-auth"],
+        ["waitForSelector", ["frm-login", "txt-password"]],
         ["waitForFocus", "txt-email"],
+        ["expectProperty", "btn-login", "disabled", false],
       ],
       on: {
         LOGIN: {
@@ -57,16 +53,14 @@ const configuration = {
     authenticating: {
       tests: [
         ["expectProperty", "btn-login", "disabled", true],
-        ["waitForSelector", ["frm-login", "txt-email", "txt-password"]],
+        ["resolve", "submitting"],
       ],
       on: {
         OK: {
           target: "authenticated",
-          actions: [["resolve", "submitting"]],
         },
         BAD: {
           target: "failure",
-          actions: [["resolve", "submitting"]],
         },
       },
     },
@@ -79,6 +73,7 @@ const configuration = {
     authenticated: {
       tests: [
         ["expectProperty", "welcome", "textContent", "Hello World!"],
+        ["resolve", "submitting"],
       ],
     },
   },

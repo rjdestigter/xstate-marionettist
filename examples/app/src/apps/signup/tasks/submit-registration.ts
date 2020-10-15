@@ -10,7 +10,7 @@ export const authenticate = (credentials: {
     // T.chain(() => () => Promise.reject("Not yet implemented"))
     T.chain(() => async () => {
       try {
-        return await fetch('http://www.example.com/register') // .catch(reason => Promise.reject(reason))
+        return await fetch('/register') // .catch(reason => Promise.reject(reason))
       } catch (error) {
         return Promise.reject(`${error}`)
       }
