@@ -7,6 +7,7 @@
       "packages/core",
       "packages/cypress",
       "packages/playwright",
+      "packages/puppeteer",
       "examples/app"
     ]
   },
@@ -28,12 +29,10 @@
     "postinstall": "manypkg check",
     "clean:packages": "yarn workspaces run clean",
     "build": "tsc -b ./tsconfig.monorepo.json",
-    "build:example": "cd examples/xstate-marionettist-example && npm run build",
-    "::puppeteer": "cd examples/xstate-marionettist-example && npm run e2e:puppeteer",
-    "::playwright": "cd examples/xstate-marionettist-example && npm run e2e:playwright",
-    "::test": "concurrently \"npm run build\" \"npm run build:example\" && concurrently \"npm run puppeteer\" \"npm run playwright\"",
-    "::prepare": "cd examples/xstate-marionettist-example && npm install",
-    "::prepublishOnly": "CI=true NODE_ENV=production npm test"
+    "build:example": "cd examples/app && yarn build",
+    "puppeteer": "cd examples/app && yarn e2e:puppeteer",
+    "playwright": "cd examples/app && yarn e2e:playwright",
+    "test": "concurrently \"yarn build\" \"yarn build:example\" && concurrently \"yarn puppeteer\" \"yarn playwright\""
   },
   "husky": {
     "hooks": {

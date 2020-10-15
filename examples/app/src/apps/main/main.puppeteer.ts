@@ -1,6 +1,10 @@
-import test, { Configuration } from "../../../../../dist";
+import { Page } from "puppeteer";
+import { create } from "../../../../../packages/puppeteer/dist";
+import { Configuration } from "xstate-marionettist";
 
-const configuration: Configuration = {
+declare const page: Page;
+
+const configuration: Configuration<Page> = {
   id: "main",
   viewport: { width: 1366, height: 768 },
   visit: {
@@ -70,9 +74,7 @@ const configuration: Configuration = {
         (page) =>
           page.waitForSelector('.mdc-button--outlined[data-testid="btn-auth"]'),
         (page) =>
-          page.waitForSelector(
-            '.mdc-button--outlined[data-testid="btn-main"]'
-          ),
+          page.waitForSelector('.mdc-button--outlined[data-testid="btn-main"]'),
         ["expectProperty", "content", "childElementCount", 2],
       ],
       on: {
@@ -89,4 +91,4 @@ const configuration: Configuration = {
   },
 };
 
-test(configuration);
+create({ ports: { ci: 9999 } })(configuration);

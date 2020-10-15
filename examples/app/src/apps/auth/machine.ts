@@ -52,7 +52,7 @@ const machine = createMachine<AuthState, AuthEvent, "auth">(
     services: {
       authenticate: (ctx) => async () => {
         const [status, data] = await authenticateTask(ctx)();
-        debugger
+        
         if (status >= 400) {
           throw data;
         }

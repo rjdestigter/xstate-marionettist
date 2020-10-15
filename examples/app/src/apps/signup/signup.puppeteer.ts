@@ -1,6 +1,10 @@
-import test, { Configuration } from "../../../../../dist";
+import { Page } from "puppeteer";
+import { create } from "../../../../../packages/puppeteer/dist";
+import { Configuration } from "xstate-marionettist";
 
-const configuration: Configuration = {
+declare const page: Page;
+
+const configuration: Configuration<Page> = {
   id: "signup",
   viewport: { width: 1366, height: 768 },
   visit: {
@@ -64,9 +68,7 @@ const configuration: Configuration = {
       },
     },
     failure: {
-      tests: [
-        ["expectProperty", "btn-register", "disabled", false],
-      ],
+      tests: [["expectProperty", "btn-register", "disabled", false]],
     },
     registrered: {
       tests: [
@@ -77,4 +79,4 @@ const configuration: Configuration = {
   },
 };
 
-test(configuration);
+create({ ports: { ci: 9999 } })(configuration);

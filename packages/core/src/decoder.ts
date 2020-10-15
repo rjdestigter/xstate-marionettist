@@ -111,8 +111,8 @@ const defaultSelectorWrapper = (selector: string) =>
   `[data-testid~="${selector}"]`;
 
 const defaultPorts = {
-  ci: 9999,
-  prod: 9999,
+  ci: 7777,
+  prod: 7777,
   dev: 3000,
 };
 

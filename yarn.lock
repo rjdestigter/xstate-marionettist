@@ -2425,6 +2425,13 @@
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.3.tgz#2ab0d5da2e5815f94b0b9d4b95d1e5f243ab2ca7"
   integrity sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
 
+"@types/puppeteer@^1.3.0":
+  version "1.20.7"
+  resolved "https://registry.yarnpkg.com/@types/puppeteer/-/puppeteer-1.20.7.tgz#31fb4274f0c6ec2e90ed8473616243f15a808017"
+  integrity sha512-LCfP/Zf/y4I/hG8ARR8htPYa1wpLpUkysJo9TffmQssVz8c1b9uDNU4benDHSldiz7HVAMek1DCWz7KbqEUg3w==
+  dependencies:
+    "@types/node" "*"
+
 "@types/q@^1.5.1":
   version "1.5.4"
   resolved "https://registry.yarnpkg.com/@types/q/-/q-1.5.4.tgz#15925414e0ad2cd765bfef58842f7e26a7accb24"
@@ -8295,6 +8302,13 @@ istanbul-reports@^3.0.2:
     html-escaper "^2.0.0"
     istanbul-lib-report "^3.0.0"
 
+jasmine-fail-fast@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/jasmine-fail-fast/-/jasmine-fail-fast-2.0.1.tgz#222daa16c89b675aba4ed9552d62cf0d1e759d71"
+  integrity sha512-En8ONwvDQOV+jyiZEZvbvUSLWSdJFj9HiWjhLdGq/V/gxs4XyST730ooe928BbRxv4bfy05OpykKuoOU4aLC5w==
+  dependencies:
+    lodash "^4.17.15"
+
 jest-changed-files@^24.9.0:
   version "24.9.0"
   resolved "https://registry.yarnpkg.com/jest-changed-files/-/jest-changed-files-24.9.0.tgz#08d8c15eb79a7fa3fc98269bc14b451ee82f8039"
@@ -14102,11 +14116,6 @@ typescript@^4.1.0-dev.20201014:
   version "4.1.0-dev.20201014"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.1.0-dev.20201014.tgz#5d6bd8cf2eccd94c1b4e8248dbe0b7bfe6feb88c"
   integrity sha512-bhKqBI1UwqB+aP6Y3M6yFEgommPn8+BofXQGTcfmlC+RdTfCY1SQVjwl8bIlqbGcMLmap2ncmD3JWCyHEoiSOg==
-
-typescript@~3.7.2:
-  version "3.7.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.7.5.tgz#0692e21f65fd4108b9330238aac11dd2e177a1ae"
-  integrity sha512-/P5lkRXkWHNAbcJIiHPfRoKqyd7bsyCma1hZNUGfn20qm64T6ZBlrzprymeu918H+mB/0rIg2gGK/BXkhhYgBw==
 
 uglify-js@^3.1.4:
   version "3.11.2"

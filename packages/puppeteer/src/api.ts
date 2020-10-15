@@ -1,10 +1,8 @@
 // Modules
 
-import { Request } from "puppeteer";
+import { Request, Page } from "puppeteer";
 import debug from "debug";
-import { Deferred } from "./delay";
-
-import { Configuration } from "./decoder";
+import { Configuration, Deferred } from "xstate-marionettist";
 
 const escapeRegExp = (str: string) =>
   str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
@@ -17,7 +15,7 @@ export const makeOnRequest = (
   id: string,
   failurePattern: string[][][],
   buffer: Deferred[] = [],
-  apis: Configuration["apis"] = []
+  apis: Configuration<Page>["apis"] = []
 ) => {
   return async (interceptedRequest: Request): Promise<void> => {
     const frame = interceptedRequest.frame();

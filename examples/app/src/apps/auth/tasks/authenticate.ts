@@ -12,8 +12,6 @@ export const authenticate = (credentials: {
 }) =>
   pipe(
     T.of({}),
-    T.delay(2000),
-    // T.chain(() => () => Promise.reject("Not yet implemented"))
     T.chain(() => async () => {
       try {
         return await fetch('http://localhost:3000/token') // .catch(reason => Promise.reject(reason))
@@ -23,7 +21,6 @@ export const authenticate = (credentials: {
     }),
     T.chain(
       response => {
-        debugger
         return () =>
           Promise.all([
             Promise.resolve(response.status),

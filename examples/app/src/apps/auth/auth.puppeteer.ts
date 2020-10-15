@@ -1,6 +1,10 @@
-import test, { Configuration } from "../../../../../dist";
+import { Page } from "puppeteer";
+import { create } from "../../../../../packages/puppeteer/dist";
+import { Configuration } from "xstate-marionettist";
 
-const configuration: Configuration = {
+declare const page: Page;
+
+const configuration: Configuration<Page> = {
   id: "auth",
   viewport: { width: 1366, height: 768 },
   visit: {
@@ -29,7 +33,7 @@ const configuration: Configuration = {
   states: {
     noop: {
       tests: [
-        cy => cy.get("div#root"),
+        (page) => page.waitForSelector("div#root"),
         ["click", "btn-auth"],
         ["waitForSelector", ["frm-login", "txt-password"]],
         ["waitForFocus", "txt-email"],
@@ -76,4 +80,4 @@ const configuration: Configuration = {
   },
 };
 
-test(configuration);
+create({ ports: { ci: 9999 }})(configuration);

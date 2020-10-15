@@ -9,7 +9,7 @@ module.exports =
       }
     : {
         launchOptions: {
-          headless: true,
+          headless: !!process.env.CI,
           slowMo: 0,
           args: ["--start-maximized"],
         },

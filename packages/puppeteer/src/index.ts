@@ -1,33 +1,24 @@
-import * as E from "fp-ts/lib/Either";
-import { createMachine } from "xstate";
-import { createModel } from "@xstate/test";
 import { Page } from "puppeteer";
 import debug from "debug";
-
-import delay, { defer, Deferred } from "./delay";
-
+import { Action, defer, delay, Deferred, make } from "xstate-marionettist";
 import { makeOnRequest } from "./api";
-import { assign } from "xstate";
 
-import decode, {
-  Action as TAction,
-  Configuration as TConfiguration,
-} from "./decoder";
+declare const page: Page
+const logaction = debug("marionettist:action");
 
 const parseActions = (wrap: (str: string) => string) => (
-  buffer: Deferred[],
-  debug: (log: any) => void
-) => (actions: TAction[]) => async (page: Page) => {
+  buffer: Deferred[]
+) => (actions: Action<Page>[]) => async (page: Page) => {
   for (let i = 0; i < actions.length; i++) {
     const action = actions[i];
 
     if (typeof action === "function") {
-      debug("pagefunction");
+      logaction("pagefunction");
       await action(page);
       continue;
     }
 
-    debug(action.join(" -> "));
+    logaction(action.join(" -> "));
 
     switch (action[0]) {
       case "delay": {
@@ -56,9 +47,9 @@ const parseActions = (wrap: (str: string) => string) => (
         await Promise.all(
           names.map((_) => {
             const deferred = defer(_, _);
-            debug(`deferring -> ${deferred.id}`);
+            logaction(`deferring -> ${deferred.id}`);
             buffer.push(deferred);
-            debug(`buffer.length -> ${buffer.length}`);
+            logaction(`buffer.length -> ${buffer.length}`);
           })
         );
 
@@ -72,7 +63,7 @@ const parseActions = (wrap: (str: string) => string) => (
 
           if (index >= 0) {
             const deferred = buffer[index];
-            debug(`resolving -> ${deferred.id}`);
+            logaction(`resolving -> ${deferred.id}`);
             buffer.splice(index, 1);
             deferred.resolve();
           }
@@ -91,7 +82,7 @@ const parseActions = (wrap: (str: string) => string) => (
         const fn = `!!document.activeElement && document.activeElement === document.querySelector("${wrap(
           action[1]
         ).replace(/"/g, '\\"')}")`;
-        debug(`waitForFocus -> ${fn}`);
+        logaction(`waitForFocus -> ${fn}`);
         await page.waitForFunction(fn);
 
         break;
@@ -114,261 +105,81 @@ const parseActions = (wrap: (str: string) => string) => (
   }
 };
 
-const parseActionsToAssign = (actions: TAction[]) =>
-  actions
-    .map((action) => {
-      if (typeof action === "function") {
-        return undefined;
-      }
+export const create = make(parseActions)(
+  ({ buffer, pattern, plans, config, url, selectorWrapper }) => {
+    describe(`xstate-marionettist-puppeteer (${config.id})`, () => {
+      const onRequest = makeOnRequest(
+        config.id,
+        pattern,
+        buffer,
+        config.apis || []
+      );
 
-      switch (action[0]) {
-        case "select":
-        case "type": {
-          return assign({ [action[1]]: () => action[2] });
-        }
-        default:
-          return undefined;
-      }
-    })
-    .filter((_) => !!_);
+      beforeAll(async () => {
+        await page.setRequestInterception(true);
+        page.on("request", onRequest);
+      });
 
-const defaultSelectorWrapper = (selector: string) =>
-  `[data-testid~="${selector}"]`;
+      afterAll(async () => {
+        page.off("request", onRequest);
+        await page.setRequestInterception(false);
+      });
 
-const defaultPorts = {
-  ci: 7777,
-  prod: 7777,
-  dev: 3000,
-};
+      plans.reverse();
 
-export type Options = {
-  selectorWrapper?: (selector: string) => string;
-  server?: string;
-  xstateInspect?: boolean;
-  ports?: {
-    ci?: number;
-    prod?: number;
-    dev?: number;
-  };
-};
+      plans.forEach((plan, planIndex) => {
+        //
+        pattern[planIndex] = [];
 
-export function make(
-  {
-    selectorWrapper = defaultSelectorWrapper,
-    ports: ports_ = defaultPorts,
-    server = "http://localhost",
-    xstateInspect = false,
-  }: Options = {
-    selectorWrapper: defaultSelectorWrapper,
-    ports: defaultPorts,
-    server: "http://localhost",
-    xstateInspect: false,
-  }
-) {
-  const ports = { ...defaultPorts, ...ports_ };
-  const ci = process.env.CI === "true";
-  const prod = process.env.NODE_ENV === "production";
-  const port =
-    ci && ports.ci ? ports.ci : ci || prod ? ports.ci || ports.prod : ports.dev;
-
-  return (json: any) => {
-    const configuration = decode(json);
-
-    if (E.isRight(configuration)) {
-      const config = configuration.right;
-
-      describe(`Auto-generated: ${config.id}`, () => {
-        const debugPlan = (...args: any[]) => debug(`e2e(${config.id}): ► PLAN`)(args.join(' ► '));
-        const debugPath = (...args: any[]) => debug(`e2e(${config.id}): ► PATH`)(args.join(' ► '));
-        const debugTest = (...args: any[]) => debug(`e2e(${config.id}): ► TEST`)(args.join(' ► '));
-        const debugEvent = (...args: any[]) => debug(`e2e(${config.id}): ► EVENT`)(args.join(' ► '));
-
-        const machineTemplate: any = {
-          id: config.id,
-          initial: config.initial,
-          states: {},
-          context: {},
-        };
-
-        const eventMap: Record<
-          string,
-          {
-            exec: (page: Page) => any;
-          }
-        > = {};
-
-        Object.keys(config.states).forEach((state) => {
-          const { type, tests, on: events = {}, xstate = {} } = config.states[
-            state
-          ];
-
-          const meta = tests && {
-            test: async (page: Page) => {
-              debugTest(`state: ${state}`);
-              return parseActions(selectorWrapper)(buffer, debugTest)(tests as TAction<Page>[])(
-                page
-              );
-            },
-          };
-
-          const on = Object.keys(events || {}).reduce((acc, next) => {
-            const event = events[next];
-
-            acc[next] = {
-              target: event.target,
-              actions: parseActionsToAssign(
-                (event.actions as TAction<Page>[]) || []
-              ),
-            };
-
-            if (event.actions) {
-              const actions = event.actions;
-
-              eventMap[next] = {
-                exec: async (page) => {
-                  debugEvent(`${next}`);
-                  return parseActions(selectorWrapper)(buffer, debugEvent)(
-                    actions as TAction<Page>[]
-                  )(page);
-                },
-              };
-            } else {
-              eventMap[next] = {
-                exec: () => true,
-              };
-            }
-
-            return acc;
-          }, {} as any);
-
-          const stateNode = Object.assign(
-            {
-              meta,
-              on,
-              type,
-            },
-            xstate
-          );
-
-          machineTemplate.states[state] = stateNode;
-        });
-
-        const machine = createMachine(machineTemplate);
-
-        const buffer: Deferred[] = [];
-        const failurePattern: string[][][] = [];
-
-        const onRequest = makeOnRequest(
-          config.id,
-          failurePattern,
-          buffer,
-          config.apis || []
-        );
-
-        beforeAll(async () => {
-          await page.setRequestInterception(true);
-          page.on("request", onRequest);
-        });
-
-        afterAll(async () => {
-          page.off("request", onRequest);
-          await page.setRequestInterception(false);
-        });
-
-        const model = createModel<Page>(machine).withEvents(eventMap);
-        const testPlans = model.getShortestPathPlans();
-        testPlans.reverse();
-
-        testPlans.forEach((plan, planIndex) => {
+        describe(`${planIndex}: ${plan.description}`, () => {
           //
-          failurePattern[planIndex] = [];
-
-          describe(`${planIndex}: ${plan.description}`, () => {
+          plan.paths.forEach((path, pathIndex) => {
             //
-            plan.paths.forEach((path, pathIndex) => {
-              //
-              failurePattern[planIndex][pathIndex] =
-                // path.description.match(/OK|BAD/g) || [];
-                config.outcomes
-                  ? path.description.match(
-                      new RegExp(config.outcomes.join("|"), "g")
-                    ) || []
-                  : [];
+            pattern[planIndex][pathIndex] =
+              // path.description.match(/OK|BAD/g) || [];
+              config.outcomes
+                ? path.description.match(
+                    new RegExp(config.outcomes.join("|"), "g")
+                  ) || []
+                : [];
 
-              const outcomes = failurePattern[planIndex][pathIndex];
+            const outcomes = pattern[planIndex][pathIndex];
 
-              it(`${pathIndex}: (${outcomes.join(", ")}) ${
-                path.description
-              }`, async () => {
-                debugPlan("-------------");
-                debugPlan(planIndex);
-                debugPlan(plan.description);
-                debugPath(pathIndex);
-                debugPath(path.description);
-                debugPath(outcomes.join(", "));
+            it(`${pathIndex}: (${outcomes.join(", ")}) ${
+              path.description
+            }`, async () => {
+              if (config.viewport) await page.setViewport(config.viewport);
 
-                if (config.viewport) await page.setViewport(config.viewport);
+              if (config.beforeVisit) {
+                await parseActions(selectorWrapper)(buffer)(
+                  config.beforeVisit as Action<Page>[]
+                )(page);
+              }
 
-                if (config.beforVisit) {
-                  await parseActions(selectorWrapper)(buffer, debugEvent)(
-                    config.beforVisit as TAction<Page>[]
-                  )(page);
-                }
+              await page.goto(url);
 
-                const visitPath = /^\//.test(config.visit.path)
-                  ? config.visit.path
-                  : `/${config.visit.path}`;
+              await page.waitForSelector("body");
 
-                const q = /\?/.test(visitPath) ? "&" : "?";
+              await page.evaluate(
+                `document.body.setAttribute("data-marionettist-path-index", ${pathIndex})`
+              );
 
-                const url = `${server}:${port}${visitPath}${q}xstate-inspect=${xstateInspect}&pathIndex=${pathIndex}&planIndex=${planIndex}&outcomes=${outcomes.join(
-                  ","
-                )}`;
+              await page.evaluate(
+                `document.body.setAttribute("data-marionettist-plan-index", ${planIndex})`
+              );
 
-                debugPath(url);
+              await path.test(page);
 
-                await page.goto(url);
-
-                await page.waitForSelector('body')
-
-                await page.evaluate(
-                  `document.body.setAttribute("data-marionettist-path-index", ${pathIndex})`
-                );
-
-                await page.evaluate(
-                  `document.body.setAttribute("data-marionettist-plan-index", ${planIndex})`
-                );
-                
-                await path.test(page);
-
-                while (buffer.length > 0) {
-                  const deferred = buffer.shift();
-                  deferred?.resolve();
-                }
-              }, 60000);
-            });
-          });
-        });
-
-        it("coverage", () => {
-          model.testCoverage({
-            filter: (node) => !!node.meta,
+              while (buffer.length > 0) {
+                const deferred = buffer.shift();
+                deferred?.resolve();
+              }
+            }, 60000);
           });
         });
       });
-    } else {
-      console.log(JSON.stringify(configuration, null, 2));
+    });
+  }
+);
 
-      describe(`Failed to generate automated end-2-end test for ${json.name}`, () => {
-        it("Failed to decode configuration", () => {
-          expect(false).toBe(configuration.left);
-        });
-      });
-    }
-  };
-}
-
-export type Action = TAction;
-export type Configuration = TConfiguration;
-
-export default make();
+export default create()

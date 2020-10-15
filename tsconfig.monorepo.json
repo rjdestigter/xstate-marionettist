@@ -9,9 +9,9 @@
     },
     {
       "path": "./packages/playwright"
+    },
+    {
+      "path": "./packages/puppeteer"
     }
-    // {
-    //   "path": "./packages/puppeteer"
-    // },
   ]
 }
