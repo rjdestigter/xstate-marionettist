@@ -2,6 +2,7 @@
   "name": "xstate-marionettist-cypress",
   "version": "0.1.0",
   "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
   "author": "John de Stigter <johndestigter@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -12,7 +13,7 @@
     "url": "https://github.com/rjdestigter/xstate-marionettist/issues"
   },
   "dependencies": {
-    "xstate-marionettist": "*"
+    "xstate-marionettist": "0.7.0"
   },
   "peerDependencies": {
     "@xstate/test": "^0.4.1",
@@ -26,7 +27,11 @@
     "typescript": "^4.1.0-dev.20201014",
     "xstate": "^4.13.0"
   },
+  "files": [
+    "./dist/**"
+  ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "yarn build"
   }
 }

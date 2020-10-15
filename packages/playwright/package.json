@@ -2,6 +2,10 @@
   "name": "xstate-marionettist-playwright",
   "version": "0.1.0",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "./dist/**"
+  ],
   "author": "John de Stigter <johndestigter@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -13,7 +17,7 @@
   },
   "dependencies": {
     "debug": "4.2.0",
-    "xstate-marionettist": "*"
+    "xstate-marionettist": "0.7.0"
   },
   "peerDependencies": {
     "@xstate/test": "^0.4.1",
