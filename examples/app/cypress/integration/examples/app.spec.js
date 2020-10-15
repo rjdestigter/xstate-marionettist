@@ -1,7 +1,6 @@
 /// <reference types="cypress" />
 import test from "../../../../../packages/cypress/dist";
 
-let i = 0;
 const configuration = {
   id: "auth",
   viewport: { width: 1366, height: 768 },

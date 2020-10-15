@@ -61,7 +61,7 @@ const machine = createMachine<AuthState, AuthEvent, "auth">(
       }, 
     },
     actions: {
-      handleFailure: assign({ error: (_, evt) => evt.data }),
+      handleFailure: assign({ error: (_, evt) => `${evt.data}` }),
       clearCredentials: assign({
         email: (_) => undefined,
         password: (_) => undefined,
