@@ -39,6 +39,7 @@
     "puppeteer": "cd examples/app && yarn e2e:puppeteer",
     "playwright": "cd examples/app && yarn e2e:playwright",
     "test": "concurrently \"yarn build\" \"yarn build:example\" && concurrently \"yarn puppeteer\" \"yarn playwright\"",
+    "test:ci": "CI=true yarn test",
     "serve:cypress": "cd examples/app && yarn serve:cypress & wait-on http://localhost:7777"
   },
   "husky": {
