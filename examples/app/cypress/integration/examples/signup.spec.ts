@@ -22,12 +22,11 @@ const configuration: Configuration<typeof cy> = {
       },
     },
   ],
-  outcomes: ["OK", "BAD"],
   initial: "noop",
   states: {
     noop: {
       tests: [
-        async (page) => await page.get("div#root"),
+        (cy) => cy.get("div#root"),
         ["click", "btn-signup"],
         ["waitForSelector", "frm-registration"],
         ["waitForFocus", "txt-name"],

@@ -1,7 +1,10 @@
+/// <reference types="cypress" />
+/// <reference types="@testing-library/cypress" />
+
 import test from "../../test";
 import { Configuration } from "../../../../../packages/core/dist";
 
-import {} from "cypress";
+const $ = (...selectors: string[]): ["$", string[]] => ["$", selectors];
 
 const configuration: Configuration<typeof cy> = {
   id: "auth",
@@ -27,11 +30,10 @@ const configuration: Configuration<typeof cy> = {
       },
     },
   ],
-  outcomes: ["OK", "BAD"],
   initial: "noop",
   states: {
     noop: {
-      tests: [["waitForSelector", "btn-auth"]],
+      tests: [(cy) => cy.findByTestId("btn-auth")],
       on: {
         ROUTE_LOGIN: {
           target: "login",
@@ -41,15 +43,15 @@ const configuration: Configuration<typeof cy> = {
     },
     login: {
       tests: [
-        ["waitForSelector", ["frm-login", "txt-email", "txt-password"]],
+        $("frm-login", "txt-email", "txt-password"),
         ["waitForFocus", "txt-email"],
       ],
       on: {
         LOGIN: {
           target: "authenticating",
           actions: [
-            ["type", "txt-email", "pianoman@xstatejs.org"],
-            ["type", "txt-password", "statechartsareawesome"],
+            (cy) => cy.findByTestId("txt-email").type("foo@bar.com"),
+            (cy) => cy.findByTestId("txt-password").type("123abc"),
             ["defer", "submitting"],
             ["click", "btn-login"],
           ],
@@ -79,9 +81,7 @@ const configuration: Configuration<typeof cy> = {
       ],
     },
     authenticated: {
-      tests: [
-        ["expectProperty", "welcome", "textContent", "Hello World!"],
-      ],
+      tests: [["expectProperty", "welcome", "textContent", "Hello World!"]],
     },
   },
 };

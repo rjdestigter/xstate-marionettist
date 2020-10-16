@@ -34,7 +34,7 @@ const parseActions = (wrap: (str: string) => string) => (
         }
 
         case "select": {
-          cy.get(action[1]).select(action[2]);
+          cy.get(action[1]).select("" + action[2]);
           break;
         }
 
@@ -90,7 +90,15 @@ const parseActions = (wrap: (str: string) => string) => (
   });
 
 export const create = make(parseActions)(
-  ({ buffer, pattern, plans, config, url, selectorWrapper }) => {
+  ({
+    buffer,
+    pattern,
+    plans,
+    config,
+    url,
+    selectorWrapper,
+    outcomes: allOutcomes,
+  }) => {
     describe(`xstate-marionettist-cypress (${config.id})`, () => {
       plans.forEach((plan, planIndex) => {
         //
@@ -102,9 +110,9 @@ export const create = make(parseActions)(
             //
             pattern[planIndex][pathIndex] =
               // path.description.match(/OK|BAD/g) || [];
-              config.outcomes
+              allOutcomes.length > 0
                 ? path.description.match(
-                    new RegExp(config.outcomes.join("|"), "g")
+                    new RegExp(allOutcomes.join("|"), "g")
                   ) || []
                 : [];
 
@@ -113,14 +121,6 @@ export const create = make(parseActions)(
             it(`${pathIndex}: (${outcomes.join(", ")}) ${
               path.description
             }`, () => {
-              // if (config.viewport) await cy.setViewport(config.viewport);
-
-              if (config.beforeVisit) {
-                parseActions(selectorWrapper)(buffer)(
-                  config.beforeVisit as Action<TestContext>[]
-                )(cy);
-              }
-
               config.apis?.forEach((api) => {
                 cy.route2(
                   {
@@ -145,7 +145,7 @@ export const create = make(parseActions)(
                       const deferred = deferrals[0];
 
                       if (deferred) {
-                        await Promise.race([deferred, delay(1500)])
+                        await Promise.race([deferred, delay(1500)]);
                         deferrals.shift();
                       }
                     }
@@ -156,7 +156,7 @@ export const create = make(parseActions)(
                     if (apiOutcome) {
                       if (apiOutcome.status === -1) {
                         return req.destroy();
-                      } 
+                      }
 
                       return req.reply(
                         apiOutcome.status || 200,
@@ -166,15 +166,23 @@ export const create = make(parseActions)(
 
                     return req.reply(200, {});
                   }
-                ).as(api.deferrals?.[0] || '')
+                ).as(api.deferrals?.[0] || "");
               });
+
+              const beforeVisit = !config.beforeVisit
+                ? []
+                : typeof config.beforeVisit === "function"
+                ? [config.beforeVisit]
+                : config.beforeVisit;
+
+              parseActions(selectorWrapper)(buffer)(beforeVisit)(cy);
 
               return cy.visit(url).then(() => {
                 path.test(cy).then(() => {
                   buffer.splice(0, buffer.length);
                 });
-                
-                cy.wait(50)
+
+                cy.wait(50);
               });
             });
           });
@@ -184,4 +192,4 @@ export const create = make(parseActions)(
   }
 );
 
-export default create()
+export default create();

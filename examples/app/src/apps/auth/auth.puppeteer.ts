@@ -28,7 +28,6 @@ const configuration: Configuration<Page> = {
       },
     },
   ],
-  outcomes: ["OK", "BAD"],
   initial: "noop",
   states: {
     noop: {

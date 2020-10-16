@@ -25,7 +25,6 @@ const configuration: Configuration<typeof cy> = {
       },
     },
   ],
-  outcomes: ["OK", "BAD"],
   initial: "noop",
   states: {
     noop: {

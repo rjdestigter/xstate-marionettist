@@ -38,7 +38,7 @@ const parseActions = (wrap: (str: string) => string) => (
       }
 
       case "select": {
-        await page.select(wrap(action[1]), action[2]);
+        await page.select(wrap(action[1]), ''+action[2]);
         break;
       }
 
@@ -106,7 +106,7 @@ const parseActions = (wrap: (str: string) => string) => (
 };
 
 export const create = make(parseActions)(
-  ({ buffer, pattern, plans, config, url, selectorWrapper }) => {
+  ({ buffer, pattern, plans, config, url, selectorWrapper, outcomes: allOutcomes }) => {
     describe(`xstate-marionettist-puppeteer (${config.id})`, () => {
       const onRequest = makeOnRequest(
         config.id,
@@ -137,9 +137,9 @@ export const create = make(parseActions)(
             //
             pattern[planIndex][pathIndex] =
               // path.description.match(/OK|BAD/g) || [];
-              config.outcomes
+              allOutcomes.length > 0
                 ? path.description.match(
-                    new RegExp(config.outcomes.join("|"), "g")
+                    new RegExp(allOutcomes.join("|"), "g")
                   ) || []
                 : [];
 
@@ -150,11 +150,13 @@ export const create = make(parseActions)(
             }`, async () => {
               if (config.viewport) await page.setViewport(config.viewport);
 
-              if (config.beforeVisit) {
-                await parseActions(selectorWrapper)(buffer)(
-                  config.beforeVisit as Action<Page>[]
-                )(page);
-              }
+              const beforeVisit = !config.beforeVisit
+                ? []
+                : typeof config.beforeVisit === "function"
+                ? [config.beforeVisit]
+                : config.beforeVisit;
+
+              await parseActions(selectorWrapper)(buffer)(beforeVisit)(page);
 
               await page.goto(url);
 
@@ -170,10 +172,7 @@ export const create = make(parseActions)(
 
               await path.test(page);
 
-              while (buffer.length > 0) {
-                const deferred = buffer.shift();
-                deferred?.resolve();
-              }
+              buffer.splice(0, buffer.length)
             }, 60000);
           });
         });

@@ -41,7 +41,7 @@ const configuration: Configuration<typeof cy> = {
       tests: [
         (cy) => cy.get("div#root"),
         (cy) =>
-          cy.waitForSelector(
+          cy.get(
             '.mdc-button--unelevated[data-testid="btn-auth"]'
           ),
         (cy) =>
