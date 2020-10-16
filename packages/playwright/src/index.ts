@@ -122,6 +122,7 @@ export const create = make(parseActions)(
     url,
     selectorWrapper,
     outcomes: allOutcomes,
+    model,
   }) => {
     const routers = config.apis?.map((api) => {
       return [
@@ -239,7 +240,7 @@ export const create = make(parseActions)(
                 : typeof config.beforeVisit === "function"
                 ? [config.beforeVisit]
                 : config.beforeVisit;
-                
+
               await parseActions(selectorWrapper)(buffer)(beforeVisit)(page);
 
               await page.goto(url);
@@ -260,6 +261,10 @@ export const create = make(parseActions)(
             }, 60000);
           });
         });
+      });
+
+      it("Coverage", () => {
+        model.testCoverage();
       });
     });
   }

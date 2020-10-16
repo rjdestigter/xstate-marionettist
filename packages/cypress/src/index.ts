@@ -91,6 +91,7 @@ const parseActions = (wrap: (str: string) => string) => (
 
 export const create = make(parseActions)(
   ({
+    model,
     buffer,
     pattern,
     plans,
@@ -178,17 +179,24 @@ export const create = make(parseActions)(
               parseActions(selectorWrapper)(buffer)(beforeVisit)(cy);
 
               return cy.visit(url).then(() => {
-                path.test(cy).then(() => {
+                const promise = path.test(cy).then(() => {
                   buffer.splice(0, buffer.length);
                 });
 
+                cy.wrap(promise);
                 cy.wait(50);
               });
             });
           });
         });
+      }); // end foreach
+
+      describe(`Coverage`, () => {
+        it("covers all states", () => {
+          model.testCoverage();
+        });
       });
-    });
+    }); // end describe
   }
 );
 

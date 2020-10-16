@@ -3,7 +3,7 @@ import debug from "debug";
 import { Action, defer, delay, Deferred, make } from "xstate-marionettist";
 import { makeOnRequest } from "./api";
 
-declare const page: Page
+declare const page: Page;
 const logaction = debug("marionettist(pptr):action");
 
 const parseActions = (wrap: (str: string) => string) => (
@@ -38,7 +38,7 @@ const parseActions = (wrap: (str: string) => string) => (
       }
 
       case "select": {
-        await page.select(wrap(action[1]), ''+action[2]);
+        await page.select(wrap(action[1]), "" + action[2]);
         break;
       }
 
@@ -106,7 +106,16 @@ const parseActions = (wrap: (str: string) => string) => (
 };
 
 export const create = make(parseActions)(
-  ({ buffer, pattern, plans, config, url, selectorWrapper, outcomes: allOutcomes }) => {
+  ({
+    buffer,
+    pattern,
+    plans,
+    config,
+    url,
+    selectorWrapper,
+    outcomes: allOutcomes,
+    model,
+  }) => {
     describe(`xstate-marionettist-puppeteer (${config.id})`, () => {
       const onRequest = makeOnRequest(
         config.id,
@@ -172,13 +181,17 @@ export const create = make(parseActions)(
 
               await path.test(page);
 
-              buffer.splice(0, buffer.length)
+              buffer.splice(0, buffer.length);
             }, 60000);
           });
         });
+      });
+
+      it("Coverage", () => {
+        model.testCoverage();
       });
     });
   }
 );
 
-export default create()
+export default create();

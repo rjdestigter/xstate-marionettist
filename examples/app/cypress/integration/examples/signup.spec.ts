@@ -70,7 +70,7 @@ const configuration: Configuration<typeof cy> = {
     },
     registrered: {
       tests: [
-        ["expectProperty", "welcome", "textContent", "Hello World!"],
+        [".", "welcome", "textContent", "Hello World!"],
         ["resolve", "submitting"],
       ],
     },

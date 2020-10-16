@@ -1,4 +1,4 @@
-import { createModel } from "@xstate/test";
+import { createModel, TestModel } from "@xstate/test";
 import { TestPlan } from "@xstate/test/lib/types";
 import { chain } from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
@@ -43,6 +43,10 @@ export type Configuration<TTestContext> = {
     server?: string;
     path: string;
   };
+  coverage?: boolean;
+  simple?: boolean,
+  path?: number | [number, number];
+  plan?: number | [number, number];
   apis?: {
     path: string;
     status?: number;
@@ -67,6 +71,7 @@ export type Configuration<TTestContext> = {
       tests?: TestContextFunction<TTestContext> | Instruction<TTestContext>[];
       on?: {
         [event: string]:
+          | string
           | TestContextFunction<TTestContext>
           | Instruction<TTestContext>[]
           | {
@@ -174,6 +179,9 @@ const configDecoder = <TTestContext>(): d.Decoder<
 
   return d.intersect(
     d.partial({
+      plan: d.union(d.number, d.tuple(d.number, d.number)),
+      coverage: d.boolean,
+      simple: d.boolean,
       beforeVisit: decoderInstructions,
       apis: d.array(
         d.intersect(d.type({ path: d.string }))(
@@ -209,6 +217,7 @@ const configDecoder = <TTestContext>(): d.Decoder<
           tests: decoderInstructions,
           on: d.record(
             d.union(
+              d.string,
               decoderInstructions,
               d.partial({
                 target: d.string,
@@ -264,6 +273,7 @@ export const make = <TTestContext>(
   ) => (testContext: TTestContext) => Promise<any>
 ) => (
   withPlans: (setup: {
+    model: TestModel<TTestContext, any>;
     buffer: Deferred<any>[];
     config: Configuration<TTestContext>;
     outcomes: string[];
@@ -326,7 +336,9 @@ export const make = <TTestContext>(
           const event = events[eventType];
 
           const actions: Instruction<TTestContext>[] =
-            typeof event === "function"
+            typeof event === "string"
+              ? []
+              : typeof event === "function"
               ? [event]
               : Array.isArray(event)
               ? event
@@ -337,7 +349,9 @@ export const make = <TTestContext>(
               : event.actions;
 
           const target =
-            typeof event !== "function" && !Array.isArray(event)
+            typeof event === "string"
+              ? event
+              : typeof event !== "function" && !Array.isArray(event)
               ? event.target
               : undefined;
 
@@ -370,7 +384,8 @@ export const make = <TTestContext>(
       const pattern: string[][][] = [];
 
       const model = createModel<TTestContext>(machine).withEvents(eventMap);
-      const plans = model.getSimplePathPlans();
+
+      const plans = config.simple ? model.getSimplePathPlans() : model.getShortestPathPlans()
 
       const visitPath = /^\//.test(config.visit.path)
         ? config.visit.path
@@ -386,7 +401,12 @@ export const make = <TTestContext>(
       );
 
       withPlans({
-        plans,
+        model,
+        plans: !config.plan
+          ? plans
+          : Array.isArray(config.plan)
+          ? plans.slice(...config.plan)
+          : plans.slice(config.plan, config.plan + 1),
         buffer,
         pattern,
         url,

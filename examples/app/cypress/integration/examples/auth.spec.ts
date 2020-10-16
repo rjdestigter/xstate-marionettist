@@ -1,4 +1,7 @@
-import test from "../../test"
+/// <reference types="cypress" />
+/// <reference types="@testing-library/cypress" />
+
+import test from "../../test";
 import { Configuration } from "../../../../../packages/core/dist";
 
 const configuration: Configuration<typeof cy> = {
@@ -29,11 +32,11 @@ const configuration: Configuration<typeof cy> = {
   states: {
     noop: {
       tests: [
-        (page) => page.get("div#root"),
+        (cy) => cy.get("div#root"),
         ["click", "btn-auth"],
         ["waitForSelector", ["frm-login", "txt-password"]],
         ["waitForFocus", "txt-email"],
-        ["expectProperty", "btn-login", "disabled", false],
+        ["prop", "btn-login", "disabled", false],
       ],
       on: {
         LOGIN: {
@@ -49,30 +52,26 @@ const configuration: Configuration<typeof cy> = {
     },
     authenticating: {
       tests: [
-        ["expectProperty", "btn-login", "disabled", true],
+        ["prop", "btn-login", "disabled", true],
         ["resolve", "submitting"],
       ],
       on: {
-        OK: {
-          target: "authenticated",
-        },
-        BAD: {
-          target: "failure",
-        },
+        OK: "authenticated",
+        BAD: "failure",
       },
     },
     failure: {
-      tests: [
-        ["waitForSelector", "txt-email-helptext-error"],
-        ["expectProperty", "btn-login", "disabled", false],
-      ],
+      tests: (cy) => {
+        cy.findByTestId("txt-email-helptext txt-email-helptext-error");
+        cy.findByTestId("btn-login").should("have.prop", "disabled", false);
+      },
     },
     authenticated: {
       tests: [
         ["expectProperty", "welcome", "textContent", "Hello World!"],
         ["resolve", "submitting"],
       ],
-    },
+    }
   },
 };
 
