@@ -1,0 +1,33 @@
+{
+  "name": "xstate-marionettist-conduit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "concurrently \"yarn run e2e:puppeteer\" \"yarn run e2e:playwright\"",
+    "test:ci": "CI=true yarn run test",
+    "serve:puppeteer": "serve -s -p 7777 build",
+    "serve:playwright": "serve -s -p 9999 build",
+    "e2e:puppeteer": "cross-env DEBUG=e2e* jest --runInBand -c jest-config.puppeteer.js",
+    "e2e:playwright": "cross-env DEBUG=e2e* jest --runInBand -c jest-config.playwright.js",
+    "link:all": "yarn link xstate-marionettist && yarn link xstate-marionettist-cypress && yarn link xstate-marionettist-playwright && yarn link xstate-marionettist-puppeteer"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@xstate/test": "^0.4.1",
+    "concurrently": "^5.3.0",
+    "cross-env": "^7.0.2",
+    "cypress": "^5.4.0",
+    "jasmine-fail-fast": "^2.0.1",
+    "jest": "^26.5.2",
+    "jest-playwright-preset": "^1.3.1",
+    "jest-puppeteer": "^4.4.0",
+    "playwright": "^1.5.1",
+    "puppeteer": "^5.3.1",
+    "ts-jest": "^26.4.1",
+    "typescript": "^4.0.3",
+    "xstate": "^4.13.0"
+  }
+}

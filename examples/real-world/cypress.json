@@ -1,0 +1,4 @@
+{
+  "experimentalNetworkStubbing": true,
+  "chromeWebSecurity": false
+}

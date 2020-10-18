@@ -16,10 +16,12 @@
  * @type {Cypress.PluginConfig}
  */
 module.exports = (on, config) => {
+  console.log(config); // see what all is in here!
+
   // config.env.CI = "staging";
   // modify env value
-  config.env.CI = process.env.CI
+  config.env.CI = process.env.CI;
   config.env.NODE_ENV = process.env.NODE_ENV || config.env.NODE_ENV;
   // return config
   return config;
-}
+};

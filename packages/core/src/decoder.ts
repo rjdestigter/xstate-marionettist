@@ -1,5 +1,5 @@
-import { createModel, TestModel } from "@xstate/test";
-import { TestPlan } from "@xstate/test/lib/types";
+import { createModel, TestModel } from "./xstate-test";
+import { TestPlan } from "./xstate-test/types";
 import { chain } from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as d from "io-ts/lib/Decoder";
@@ -44,7 +44,7 @@ export type Configuration<TTestContext> = {
     path: string;
   };
   coverage?: boolean;
-  simple?: boolean,
+  simple?: boolean;
   path?: number | [number, number];
   plan?: number | [number, number];
   apis?: {
@@ -270,7 +270,7 @@ export const make = <TTestContext>(
     buffer: Deferred[]
   ) => (
     actions: Instruction<TTestContext>[]
-  ) => (testContext: TTestContext) => Promise<any>
+  ) => (testContext: TTestContext) => unknown
 ) => (
   withPlans: (setup: {
     model: TestModel<TTestContext, any>;
@@ -385,7 +385,9 @@ export const make = <TTestContext>(
 
       const model = createModel<TTestContext>(machine).withEvents(eventMap);
 
-      const plans = config.simple ? model.getSimplePathPlans() : model.getShortestPathPlans()
+      const plans = config.simple
+        ? model.getSimplePathPlans()
+        : model.getShortestPathPlans();
 
       const visitPath = /^\//.test(config.visit.path)
         ? config.visit.path
@@ -398,7 +400,14 @@ export const make = <TTestContext>(
       const outcomes = pipe(
         config.apis || [],
         chain((api) => Object.keys(api.outcomes || {}))
-      );
+      ).filter(_ => _ !== '*')
+
+      const _push = buffer.push.bind(buffer)
+
+      buffer.push = function(...args) {
+        console.log('Pushing', ...args)
+        return _push(...args)
+      }
 
       withPlans({
         model,

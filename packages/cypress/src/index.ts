@@ -6,8 +6,7 @@ type TestContext = typeof cy;
 
 const parseActions = (wrap: (str: string) => string) => (
   buffer: Deferred[]
-) => (actions: Action<TestContext>[]) => (cy: TestContext) =>
-  new Promise((resolve) => {
+) => (actions: Action<TestContext>[]) => (cy: TestContext) => {
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
 
@@ -39,32 +38,42 @@ const parseActions = (wrap: (str: string) => string) => (
         }
 
         case "defer": {
-          const names = Array.isArray(action[1]) ? action[1] : [action[1]];
+          cy.then(() => {
+            const names = Array.isArray(action[1]) ? action[1] : [action[1]];
 
-          names.forEach((_) => {
-            const deferred = defer(_, _);
-            buffer.push(deferred);
-            cy.log(`Defer: ${deferred.id}`);
+            names.forEach((_) => {
+              const deferred = defer(_, _);
+              buffer.push(deferred);
+              console.log("PUSH", deferred.id);
+              console.log("DEFER", buffer, [...buffer]);
+              cy.log("Defer", deferred.id);
+              // @ts-ignore
+              console.log("FOO", window.foo);
+            });
           });
 
           break;
         }
 
         case "resolve": {
-          let index = -1;
-          do {
-            index = buffer.findIndex((deferred) => deferred.id === action[1]);
+          cy.then(() => {
+            let index = -1;
+            do {
+              index = buffer.findIndex((deferred) => deferred.id === action[1]);
 
-            if (index >= 0) {
-              const deferred = buffer[index];
-              buffer.splice(index, 1);
-              cy.log(`Resolve: ${deferred.id}`);
-              deferred.resolve();
-              cy.log(`Resolved: ${deferred.id}`);
-            }
-          } while (false);
+              if (index >= 0) {
+                const deferred = buffer[index];
+                buffer.splice(index, 1);
+                console.log("PULL", deferred.id);
+                console.log(buffer);
+                cy.log(`Resolve: ${deferred.id}`);
+                deferred.resolve();
+                cy.log(`Resolved: ${deferred.id}`);
+              }
+            } while (false);
+          });
 
-          cy.wrap(() => new Promise((resolve) => setTimeout(resolve, 1)));
+          // cy.wrap(new Promise((resolve) => setTimeout(resolve, 1)));
           break;
         }
 
@@ -85,9 +94,7 @@ const parseActions = (wrap: (str: string) => string) => (
         }
       }
     }
-
-    cy.then(resolve);
-  });
+  };
 
 export const create = make(parseActions)(
   ({
@@ -118,7 +125,8 @@ export const create = make(parseActions)(
                 : [];
 
             const outcomes = pattern[planIndex][pathIndex];
-
+            // @ts-ignore
+            window.foo = buffer;
             it(`${pathIndex}: (${outcomes.join(", ")}) ${
               path.description
             }`, () => {
@@ -128,6 +136,13 @@ export const create = make(parseActions)(
                     path: new RegExp(api.path),
                   },
                   async (req) => {
+                    await delay(1000);
+                    console.log("ROUTE2", buffer, [...buffer]);
+                    console.log("REQUEST", req);
+                    // @ts-ignore
+                    console.log("FOO", window.foo);
+                    console.log("BUFFER", ...buffer);
+                    debugger;
                     const outcomeIndex = pattern[planIndex][
                       pathIndex
                     ].findIndex((outcome) => api.outcomes?.[outcome]);
@@ -141,6 +156,8 @@ export const create = make(parseActions)(
                     const deferrals = buffer.filter((deferred) =>
                       api.deferrals?.includes(deferred.id)
                     );
+                    console.log("OUTCOME", outcome);
+                    console.log("deferrals", api.deferrals, ...deferrals);
 
                     while (deferrals.length > 0) {
                       const deferred = deferrals[0];
@@ -179,12 +196,13 @@ export const create = make(parseActions)(
               parseActions(selectorWrapper)(buffer)(beforeVisit)(cy);
 
               return cy.visit(url).then(() => {
-                const promise = path.test(cy).then(() => {
-                  buffer.splice(0, buffer.length);
-                });
+                path.test(cy)
 
-                cy.wrap(promise);
-                cy.wait(50);
+                cy.wait(1000).then(() => {
+                  buffer.splice(0, buffer.length);
+                })
+
+                // cy.wait(50);
               });
             });
           });

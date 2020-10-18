@@ -8,7 +8,8 @@
       "packages/cypress",
       "packages/playwright",
       "packages/puppeteer",
-      "examples/app"
+      "examples/app",
+      "examples/real-world"
     ]
   },
   "author": "John de Stigter <johndestigter@gmail.com>",

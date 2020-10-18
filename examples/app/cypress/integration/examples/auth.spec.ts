@@ -32,6 +32,7 @@ const configuration: Configuration<typeof cy> = {
   states: {
     noop: {
       tests: [
+        cy => cy.log(`State: noop`),
         (cy) => cy.get("div#root"),
         ["click", "btn-auth"],
         ["waitForSelector", ["frm-login", "txt-password"]],
@@ -52,6 +53,7 @@ const configuration: Configuration<typeof cy> = {
     },
     authenticating: {
       tests: [
+        cy => cy.log(`State: authenticating`),
         ["prop", "btn-login", "disabled", true],
         ["resolve", "submitting"],
       ],
@@ -62,12 +64,14 @@ const configuration: Configuration<typeof cy> = {
     },
     failure: {
       tests: (cy) => {
+        cy.log('State: failure'),
         cy.findByTestId("txt-email-helptext txt-email-helptext-error");
         cy.findByTestId("btn-login").should("have.prop", "disabled", false);
       },
     },
     authenticated: {
       tests: [
+        cy => cy.log(`State: authenticated`),
         ["expectProperty", "welcome", "textContent", "Hello World!"],
         ["resolve", "submitting"],
       ],

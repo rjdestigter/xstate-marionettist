@@ -20,7 +20,9 @@
     "xstate": "^4.13.0"
   },
   "devDependencies": {
+    "@xstate/graph": "1.2.0",
     "@xstate/test": "^0.4.1",
+    "chalk": "4.1.0",
     "typescript": "^4.1.0-dev.20201014",
     "xstate": "^4.13.0"
   },
