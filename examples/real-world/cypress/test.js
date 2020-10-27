@@ -1,4 +1,4 @@
-import  { create } from "xstate-marionettist-cypress";
+import  { create } from "../../../packages/cypress";
 
 export default create({
   ports: {

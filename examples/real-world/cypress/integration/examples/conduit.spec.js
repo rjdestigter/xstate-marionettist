@@ -1,11 +1,11 @@
 import test from "../../test";
 
-const configuration = {
+test({
   id: "conduit",
   visit: {
     path: "/",
   },
-  // plan: [0, 2],
+  // plan: [7, 8],
   apis: [
     {
       path: ".*/api/users/login$",
@@ -52,7 +52,7 @@ const configuration = {
       deferrals: ["register"],
       outcomes: {
         BAD_SIGNUP: {
-          status: 400,
+          status: 422,
           body: {
             errors: {
               email: ["is invalid"],
@@ -68,6 +68,20 @@ const configuration = {
               createdAt: "2020-10-15T17:28:23.804Z",
               updatedAt: "2020-10-15T17:28:23.912Z",
               username: "jane.doe",
+              bio: null,
+              image: null,
+              token: "abc123",
+            },
+          },
+        },
+        '*': {
+          body: {
+            user: {
+              id: 119095,
+              email: "jane2@doe.com",
+              createdAt: "2020-10-15T17:28:23.804Z",
+              updatedAt: "2020-10-15T17:28:23.912Z",
+              username: "jane2.doe",
               bio: null,
               image: null,
               token: "abc123",
@@ -138,7 +152,6 @@ const configuration = {
       },
     },
   ],
-  outcomes: ["BAD_SIGNUP", "OK_SIGNUP"],
   viewport: {
     width: 1920,
     height: 1080,
@@ -151,7 +164,6 @@ const configuration = {
       }),
     ["defer", "tags"],
     ["defer", "articles"],
-    cy => cy.wait(150)
   ],
   initial: "anonymous",
   states: {
@@ -224,6 +236,7 @@ const configuration = {
     // State for testing after tags have downloaded
     withTags: {
       tests: [
+        cy => cy.log('State: withTags'),
         ["waitForSelector", ".tag-default.tag-pill"],
         [
           "expectProperty",
@@ -245,9 +258,7 @@ const configuration = {
       tests: [
         ["waitForSelector", ".article-preview"],
         (cy) =>
-          cy.get(".article-preview:nth-child(1) h1", {
-            timeout: 10000,
-          }),
+          cy.get(".article-preview:nth-child(1) h1"),
         ["waitForSelector", ".article-preview:nth-child(1) h1"],
         ["waitForSelector", ".article-preview:nth-child(2) h1"],
         [
@@ -282,6 +293,7 @@ const configuration = {
     // State for testing the sign-up workflow
     signUp: {
       tests: [
+        cy => cy.log('signup'),
         ["expectProperty", ".auth-page h1", "textContent", "Sign up"],
         ["waitForSelector", 'input[placeholder="Username"]'],
         ["waitForSelector", 'input[placeholder="Email"]'],
@@ -315,7 +327,12 @@ const configuration = {
       },
     },
     signingUp: {
-      tests: [],
+      tests: [
+        ["waitForSelector", 'input[placeholder="Username"]'],
+        ["waitForSelector", 'input[placeholder="Email"]'],
+        ["waitForSelector", 'input[type="password"]'],
+        ["waitForSelector", "button"],
+      ],
       on: {
         BAD_SIGNUP: {
           actions: [["resolve", "register"]],
@@ -388,6 +405,4 @@ const configuration = {
       },
     },
   },
-};
-
-test(configuration);
+})

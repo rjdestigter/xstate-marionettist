@@ -31,7 +31,7 @@ import {
  * ```js
  * const toggleModel = createModel(toggleMachine).withEvents({
  *   TOGGLE: {
- *     exec: async page => {
+ *     exec: page => {
  *       page.click('input');
  *     }
  *   }
@@ -253,7 +253,7 @@ export class TestModel<TTestContext, TContext> {
 
       return {
         ...testPlan,
-        test: async (testContext) => {
+        test: (testContext) => {
           for (const path of paths) {
             path.test(testContext);
           }
@@ -264,7 +264,7 @@ export class TestModel<TTestContext, TContext> {
     });
   }
 
-  public async testState(
+  public testState(
     state: State<TContext, any>,
     testContext: TTestContext
   ) {
@@ -418,7 +418,7 @@ function getEventSamples<T>(eventsOptions: TestModelOptions<T>['events']) {
  * ```js
  * const toggleModel = createModel(toggleMachine).withEvents({
  *   TOGGLE: {
- *     exec: async page => {
+ *     exec: page => {
  *       page.click('input');
  *     }
  *   }

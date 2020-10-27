@@ -402,13 +402,6 @@ export const make = <TTestContext>(
         chain((api) => Object.keys(api.outcomes || {}))
       ).filter(_ => _ !== '*')
 
-      const _push = buffer.push.bind(buffer)
-
-      buffer.push = function(...args) {
-        console.log('Pushing', ...args)
-        return _push(...args)
-      }
-
       withPlans({
         model,
         plans: !config.plan
