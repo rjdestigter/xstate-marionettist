@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 
 import { Action, defer, Deferred, delay, make } from "xstate-marionettist";
+import { createModel } from "./xstate-test";
 
 type TestContext = typeof cy;
 
@@ -92,7 +93,10 @@ const parseActions = (wrap: (str: string) => string) => (
   }
 };
 
-export const create = make(parseActions)(
+export const create = make(
+  parseActions,
+  createModel as any
+)(
   ({
     model,
     buffer,
@@ -128,7 +132,7 @@ export const create = make(parseActions)(
               const requests: Deferred[] = [];
 
               config.apis?.forEach((api) => {
-                cy.route2(
+                cy.intercept(
                   {
                     path: new RegExp(api.path),
                   },

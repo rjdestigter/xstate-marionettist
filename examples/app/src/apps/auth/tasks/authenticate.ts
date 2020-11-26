@@ -1,11 +1,6 @@
 import * as T from "fp-ts/lib/Task";
 import { pipe } from "fp-ts/lib/pipeable";
 
-type Token = {
-  access_token: string,
-  refresh_token: string,
-}
-
 export const authenticate = (credentials: {
   email?: string;
   password?: string;

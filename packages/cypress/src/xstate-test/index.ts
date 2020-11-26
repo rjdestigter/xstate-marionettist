@@ -6,7 +6,7 @@ import {
   ValueAdjMapOptions
 } from '@xstate/graph';
 import { StateMachine, EventObject, State, StateValue } from 'xstate';
-import slimChalk from './slimChalk';
+import slimChalk from '@xstate/test/lib/slimChalk';
 import {
   TestModelCoverage,
   TestModelOptions,

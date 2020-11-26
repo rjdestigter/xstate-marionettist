@@ -1,5 +1,5 @@
-import { createModel, TestModel } from "./xstate-test";
-import { TestPlan } from "./xstate-test/types";
+import { createModel as xstateCreatModel, TestModel } from "@xstate/test";
+import { TestPlan } from "@xstate/test/lib/types";
 import { chain } from "fp-ts/lib/Array";
 import { pipe } from "fp-ts/lib/function";
 import * as d from "io-ts/lib/Decoder";
@@ -270,7 +270,8 @@ export const make = <TTestContext>(
     buffer: Deferred[]
   ) => (
     actions: Instruction<TTestContext>[]
-  ) => (testContext: TTestContext) => unknown
+  ) => (testContext: TTestContext) => unknown,
+  createModel: typeof xstateCreatModel = xstateCreatModel
 ) => (
   withPlans: (setup: {
     model: TestModel<TTestContext, any>;
@@ -400,7 +401,7 @@ export const make = <TTestContext>(
       const outcomes = pipe(
         config.apis || [],
         chain((api) => Object.keys(api.outcomes || {}))
-      ).filter(_ => _ !== '*')
+      ).filter((_) => _ !== "*");
 
       withPlans({
         model,

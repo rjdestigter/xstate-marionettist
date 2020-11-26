@@ -12,19 +12,19 @@
     "url": "https://github.com/rjdestigter/xstate-marionettist/issues"
   },
   "dependencies": {
-    "fp-ts": "^2.8.3",
-    "io-ts": "^2.2.11"
+    "fp-ts": "^2.9.0",
+    "io-ts": "^2.2.13"
   },
   "peerDependencies": {
     "@xstate/test": "^0.4.1",
-    "xstate": "^4.13.0"
+    "xstate": "^4.14.0"
   },
   "devDependencies": {
     "@xstate/graph": "1.2.0",
     "@xstate/test": "^0.4.1",
     "chalk": "4.1.0",
-    "typescript": "^4.1.0-dev.20201014",
-    "xstate": "^4.13.0"
+    "typescript": "^4.2.0-dev.20201123",
+    "xstate": "^4.14.0"
   },
   "scripts": {
     "build": "tsc"

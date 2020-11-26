@@ -16,26 +16,24 @@
     "url": "https://github.com/rjdestigter/xstate-marionettist/issues"
   },
   "dependencies": {
-    "debug": "4.2.0",
+    "debug": "4.3.1",
     "xstate-marionettist": "*"
   },
   "peerDependencies": {
-    "@xstate/test": "^0.4.1",
     "jest": "^26.x.x",
     "jest-puppeteer": "^4.4.0",
-    "puppeteer": "^5.3.1",
-    "xstate": "^4.13.0"
+    "puppeteer": "^5.5.0",
+    "xstate": "^4.14.0"
   },
   "devDependencies": {
-    "@types/debug": "0.0.30",
+    "@types/debug": "^4.1.5",
     "@types/jest": "^26.x.x",
-    "@types/puppeteer": "^1.3.0",
-    "@xstate/test": "^0.4.1",
+    "@types/puppeteer": "^5.4.0",
     "jest": "^26.x.x",
     "jest-puppeteer": "^4.4.0",
-    "puppeteer": "^5.3.1",
-    "typescript": "^4.1.0-dev.20201014",
-    "xstate": "^4.13.0"
+    "puppeteer": "^5.4.1",
+    "typescript": "^4.2.0-dev.20201123",
+    "xstate": "^4.14.0"
   },
   "scripts": {
     "build": "tsc"
