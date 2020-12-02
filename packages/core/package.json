@@ -1,6 +1,6 @@
 {
   "name": "xstate-marionettist",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "main": "dist/index.js",
   "author": "John de Stigter <johndestigter@gmail.com>",
   "license": "MIT",
